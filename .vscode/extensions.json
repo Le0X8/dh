@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+        "github.vscode-github-actions",
+        "ms-vscode.hexeditor",
+        "wakatime.vscode-wakatime",
+        "github.vscode-pull-request-github",
+        "fill-labs.dependi",
+        "tamasfe.even-better-toml",
+        "github.remotehub",
+        "dustypomerleau.rust-syntax",
+        "rust-lang.rust-analyzer",
+        "vadimcn.vscode-lldb",
+        "usernamehw.errorlens",
+        "gruntfuggly.todo-tree"
+    ]
+}
