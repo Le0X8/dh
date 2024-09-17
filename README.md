@@ -34,7 +34,7 @@ fn main() {
 ### Simple file writing
 
 ```rust
-use dh;
+use dh::{self, Readable, Writable};
 
 fn main() {
     let mut file = dh::file::open_w("data.txt").unwrap();
