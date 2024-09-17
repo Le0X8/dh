@@ -9,7 +9,7 @@ where
     fn unlock(&mut self) -> Result<()>;
     fn close(self) -> Result<()>;
 
-    fn write_utf8_at(&mut self, pos: u64, s: &String) -> Result<()> {
+    fn write_utf8_at(&mut self, s: &String, pos: u64) -> Result<()> {
         match self.seek(std::io::SeekFrom::Start(pos)) {
             Ok(_) => (),
             Err(e) => return Err(e),

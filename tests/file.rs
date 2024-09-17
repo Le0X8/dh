@@ -16,7 +16,7 @@ fn w000() {
     let str = String::from("Hello, world!");
     writer.lock().unwrap(); // not necessary, but this prevents other processes from accessing the file
     writer.alloc(str.len() as u64).unwrap(); // not necessary, but it reserves space on the disk
-    writer.write_utf8_at(0, &str).unwrap();
+    writer.write_utf8_at(&str, 0).unwrap();
     writer.close().unwrap();
 
     let mut reader = file::open_r(path).unwrap();

@@ -22,11 +22,11 @@ cargo install dh
 ### Simple file reading
 
 ```rust
-use dh;
+use dh::{self, Readable};
 
 fn main() {
     let mut file = dh::file::open_r("data.txt").unwrap();
-    let size = file.size();
+    let size = file.size().unwrap();
     assert_eq!(file.read_utf8(size), "Hello, world!\n");
 }
 ```
@@ -38,7 +38,7 @@ use dh;
 
 fn main() {
     let mut file = dh::file::open_w("data.txt").unwrap();
-    file.write_utf8("Hello, world!\n");
+    file.write_utf8_at("Hello, world!\n", 0);
     file.close(); // optional, but recommended
 }
 ```
@@ -46,11 +46,11 @@ fn main() {
 ### Open a file in read/write mode
 
 ```rust
-use dh;
+use dh::{self, Readable, Writable};
 
 fn main() {
     let mut file = dh::file::open_rw("data.txt").unwrap();
-    file.write_utf8("Hello, world!\n");
+    file.write_utf8_at("Hello, world!\n", 0);
     file.rewind();
     assert_eq!(file.read_utf8(file.size()), "Hello, world!\n");
 }
@@ -59,7 +59,7 @@ fn main() {
 ### Read and write u8 vectors
 
 ```rust
-use dh;
+use dh::{self, Readable, Writable};
 
 fn main() {
     let mut data = vec![0u8; 1];
@@ -73,7 +73,7 @@ fn main() {
 or
 
 ```rust
-use dh;
+use dh::{self, Readable, Writable};
 
 fn main() {
     let data = vec![0u8; 1];
@@ -87,7 +87,7 @@ fn main() {
 ### Read and write u8 vectors and temporarily store them in a file
 
 ```rust
-use dh;
+use dh::{self, Readable, Writable};
 
 fn main() {
     let data = vec![0u8; 1];
@@ -101,7 +101,7 @@ fn main() {
 ### Limit readable space
 
 ```rust
-use dh;
+use dh::{self, Readable, Writable};
 
 fn main() {
     let mut file = dh::file::open_r("data.txt").unwrap();
