@@ -14,7 +14,7 @@ Data handling in Rust, made easy.
 ## Installation
 
 ```bash
-cargo install dh
+cargo add dh
 ```
 
 ## Usage
