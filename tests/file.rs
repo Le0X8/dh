@@ -7,6 +7,56 @@ fn r000() {
     let mut reader = file::open_r(path).unwrap();
     let size = reader.size().unwrap();
     assert_eq!(reader.read_utf8_at(0, size).unwrap(), "Hello, world!");
+
+    assert_eq!(reader.read_u8().unwrap(), 0x48);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_u16le().unwrap(), 0x6548);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_u16be().unwrap(), 0x4865);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_u32le().unwrap(), 0x6c6c6548);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_u32be().unwrap(), 0x48656c6c);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_u64le().unwrap(), 0x77202c6f6c6c6548);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_u64be().unwrap(), 0x48656c6c6f2c2077);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_uxle(3).unwrap(), 0x6c6548);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_uxle(7).unwrap(), 0x202c6f6c6c6548);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_uxbe(3).unwrap(), 0x48656c);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_uxbe(7).unwrap(), 0x48656c6c6f2c20);
+    reader.rewind().unwrap();
+}
+
+#[test]
+fn r001() {
+    let path = "tests/samples/001";
+    let mut reader = file::open_r(path).unwrap();
+
+    assert_eq!(reader.read_vu7().unwrap(), 0b1101100_1100101_1001000);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_vu7r().unwrap(), 0b1001000_1100101_1101100);
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vu15le().unwrap(),
+        0b010110011001111_110110001101100_110010111001000
+    );
 }
 
 #[test]
