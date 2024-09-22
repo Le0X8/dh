@@ -3,6 +3,49 @@ use std::{
     vec,
 };
 
+fn parse_vux(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(u128, usize)> {
+    let mut result = 0;
+    let mut shift = 0u8;
+    let mut i = 0;
+    loop {
+        i += 1;
+        let bytes = read_ux(size)?;
+        if bytes & (1 << (size * 8 - 1)) == 0 {
+            result |= (bytes & !(1 << (size * 8 - 1))) << shift;
+            break;
+        }
+        result |= (bytes & !(1 << (size * 8 - 1))) << shift;
+        shift += size * 8 - 1;
+    }
+    Ok((result, i))
+}
+
+fn parse_vuxr(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(u128, usize)> {
+    let mut result = 0;
+    let mut shift = 0u8;
+    let mut bytes = [0u128; 16];
+    let mut i = 0;
+    loop {
+        let b = read_ux(size)?;
+        bytes[i] = b;
+        i += 1;
+        if b & (1 << (size * 8 - 1)) == 0 {
+            break;
+        }
+    }
+    bytes.reverse();
+    let mut reached_data = false;
+    for byte in bytes.iter() {
+        if *byte == 0 && !reached_data {
+            continue;
+        }
+        reached_data = true;
+        result |= (*byte & !(1 << (size * 8 - 1))) << shift;
+        shift += size * 8 - 1;
+    }
+    Ok((result, i))
+}
+
 pub trait Readable
 where
     Self: Read + Seek,
@@ -231,85 +274,31 @@ where
     }
 
     fn read_vuxle(&mut self, size: u8) -> Result<u128> {
-        let mut result = 0;
-        let mut shift = 0u8;
-        loop {
-            let bytes = self.read_uxle(size)?;
-            if bytes & (1 << (size * 8 - 1)) == 0 {
-                result |= (bytes & !(1 << (size * 8 - 1))) << shift;
-                break;
-            }
-            result |= (bytes & !(1 << (size * 8 - 1))) << shift;
-            shift += size * 8 - 1;
+        match parse_vux(&mut |s| self.read_uxle(s), size) {
+            Ok((result, _)) => Ok(result),
+            Err(err) => Err(err),
         }
-        Ok(result)
     }
 
     fn read_vuxbe(&mut self, size: u8) -> Result<u128> {
-        let mut result = 0;
-        let mut shift = 0u8;
-        loop {
-            let bytes = self.read_uxbe(size)?;
-            if bytes & (1 << (size * 8 - 1)) == 0 {
-                result |= (bytes & !(1 << (size * 8 - 1))) << shift;
-                break;
-            }
-            result |= (bytes & !(1 << (size * 8 - 1))) << shift;
-            shift += size * 8 - 1;
+        match parse_vux(&mut |s| self.read_uxbe(s), size) {
+            Ok((result, _)) => Ok(result),
+            Err(err) => Err(err),
         }
-        Ok(result)
     }
 
     fn read_vuxler(&mut self, size: u8) -> Result<u128> {
-        let mut result = 0;
-        let mut shift = 0u8;
-        let mut bytes = [0u128; 16];
-        let mut i = 0;
-        loop {
-            let b = self.read_uxle(size)?;
-            bytes[i] = b;
-            i += 1;
-            if b & (1 << (size * 8 - 1)) == 0 {
-                break;
-            }
+        match parse_vuxr(&mut |s| self.read_uxle(s), size) {
+            Ok((result, _)) => Ok(result),
+            Err(err) => Err(err),
         }
-        bytes.reverse();
-        let mut reached_data = false;
-        for byte in bytes.iter() {
-            if *byte == 0 && !reached_data {
-                continue;
-            }
-            reached_data = true;
-            result |= (*byte & !(1 << (size * 8 - 1))) << shift;
-            shift += size * 8 - 1;
-        }
-        Ok(result)
     }
 
     fn read_vuxber(&mut self, size: u8) -> Result<u128> {
-        let mut result = 0;
-        let mut shift = 0u8;
-        let mut bytes = [0u128; 16];
-        let mut i = 0;
-        loop {
-            let b = self.read_uxbe(size)?;
-            bytes[i] = b;
-            i += 1;
-            if b & (1 << (size * 8 - 1)) == 0 {
-                break;
-            }
+        match parse_vuxr(&mut |s| self.read_uxbe(s), size) {
+            Ok((result, _)) => Ok(result),
+            Err(err) => Err(err),
         }
-        bytes.reverse();
-        let mut reached_data = false;
-        for byte in bytes.iter() {
-            if *byte == 0 && !reached_data {
-                continue;
-            }
-            reached_data = true;
-            result |= (*byte & !(1 << (size * 8 - 1))) << shift;
-            shift += size * 8 - 1;
-        }
-        Ok(result)
     }
 
     fn read_i8(&mut self) -> Result<i8> {
@@ -369,6 +358,78 @@ where
         self.read_ixbe(16)
     }
 
+    fn read_vi7(&mut self) -> Result<i128> {
+        self.read_vixle(1)
+    }
+
+    fn read_vi7r(&mut self) -> Result<i128> {
+        self.read_vixler(1)
+    }
+
+    fn read_vi15le(&mut self) -> Result<i128> {
+        self.read_vixle(2)
+    }
+
+    fn read_vi15be(&mut self) -> Result<i128> {
+        self.read_vixbe(2)
+    }
+
+    fn read_vi15ler(&mut self) -> Result<i128> {
+        self.read_vixler(2)
+    }
+
+    fn read_vi15ber(&mut self) -> Result<i128> {
+        self.read_vixber(2)
+    }
+
+    fn read_vi31le(&mut self) -> Result<i128> {
+        self.read_vixle(4)
+    }
+
+    fn read_vi31be(&mut self) -> Result<i128> {
+        self.read_vixbe(4)
+    }
+
+    fn read_vi31ler(&mut self) -> Result<i128> {
+        self.read_vixler(4)
+    }
+
+    fn read_vi31ber(&mut self) -> Result<i128> {
+        self.read_vixber(4)
+    }
+
+    fn read_vi63le(&mut self) -> Result<i128> {
+        self.read_vixle(8)
+    }
+
+    fn read_vi63be(&mut self) -> Result<i128> {
+        self.read_vixbe(8)
+    }
+
+    fn read_vi63ler(&mut self) -> Result<i128> {
+        self.read_vixler(8)
+    }
+
+    fn read_vi63ber(&mut self) -> Result<i128> {
+        self.read_vixber(8)
+    }
+
+    fn read_vi127le(&mut self) -> Result<i128> {
+        self.read_vixle(16)
+    }
+
+    fn read_vi127be(&mut self) -> Result<i128> {
+        self.read_vixbe(16)
+    }
+
+    fn read_vi127ler(&mut self) -> Result<i128> {
+        self.read_vixler(16)
+    }
+
+    fn read_vi127ber(&mut self) -> Result<i128> {
+        self.read_vixber(16)
+    }
+
     fn read_ixle(&mut self, size: u8) -> Result<i128> {
         let mut buffer = [0u8; 16];
         match self.read_exact(&mut buffer[0..size as usize]) {
@@ -397,5 +458,81 @@ where
         }
 
         Ok(result)
+    }
+
+    fn read_vixle(&mut self, size: u8) -> Result<i128> {
+        let mut fun = |s: u8| self.read_uxle(s);
+        let result = parse_vux(&mut fun, size)?;
+        let unsigned = result.0;
+        let length = result.1 as u8;
+
+        let block_len = size * 8 - 1;
+        let bit_len = block_len * length;
+        let negative = unsigned & (1 << (bit_len - 1)) != 0;
+
+        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
+
+        if negative {
+            Ok(-int)
+        } else {
+            Ok(int)
+        }
+    }
+
+    fn read_vixbe(&mut self, size: u8) -> Result<i128> {
+        let mut fun = |s: u8| self.read_uxbe(s);
+        let result = parse_vux(&mut fun, size)?;
+        let unsigned = result.0;
+        let length = result.1 as u8;
+
+        let block_len = size * 8 - 1;
+        let bit_len = block_len * length;
+        let negative = unsigned & (1 << (bit_len - 1)) != 0;
+
+        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
+
+        if negative {
+            Ok(-int)
+        } else {
+            Ok(int)
+        }
+    }
+
+    fn read_vixler(&mut self, size: u8) -> Result<i128> {
+        let mut fun = |s: u8| self.read_uxle(s);
+        let result = parse_vuxr(&mut fun, size)?;
+        let unsigned = result.0;
+        let length = result.1 as u8;
+
+        let block_len = size * 8 - 1;
+        let bit_len = block_len * length;
+        let negative = unsigned & (1 << (bit_len - 1)) != 0;
+
+        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
+
+        if negative {
+            Ok(-int)
+        } else {
+            Ok(int)
+        }
+    }
+
+    fn read_vixber(&mut self, size: u8) -> Result<i128> {
+        let mut fun = |s: u8| self.read_uxbe(s);
+        let result = parse_vuxr(&mut fun, size)?;
+        let unsigned = result.0;
+        let length = result.1 as u8;
+
+        let block_len = size * 8 - 1;
+        let bit_len = block_len * length;
+        let negative = unsigned & (1 << (bit_len - 1)) != 0;
+
+        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
+
+        if negative {
+            Ok(-int)
+        } else {
+            Ok(int)
+        }
     }
 }

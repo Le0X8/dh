@@ -76,6 +76,45 @@ fn r001() {
         0b100100011100101_110110011101100
     );
     reader.rewind().unwrap();
+
+    assert_eq!(reader.read_i8().unwrap(), -56);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_i16le().unwrap(), -6712);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_i16be().unwrap(), -14107);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_vi7().unwrap(), -0b0101100_1100101_1001000);
+    reader.rewind().unwrap();
+
+    assert_eq!(reader.read_vi7r().unwrap(), -0b0001000_1100101_1101100);
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vi15le().unwrap(),
+        0b010110011001111_110110001101100_110010111001000
+    );
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vi15be().unwrap(),
+        -0b010110011101100_100100011100101
+    );
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vi15ler().unwrap(),
+        -0b010010111001000_110110001101100_010110011001111
+    );
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vi15ber().unwrap(),
+        -0b000100011100101_110110011101100
+    );
+    reader.rewind().unwrap();
 }
 
 #[test]
