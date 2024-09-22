@@ -57,6 +57,25 @@ fn r001() {
         reader.read_vu15le().unwrap(),
         0b010110011001111_110110001101100_110010111001000
     );
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vu15be().unwrap(),
+        0b110110011101100_100100011100101
+    );
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vu15ler().unwrap(),
+        0b110010111001000_110110001101100_010110011001111
+    );
+    reader.rewind().unwrap();
+
+    assert_eq!(
+        reader.read_vu15ber().unwrap(),
+        0b100100011100101_110110011101100
+    );
+    reader.rewind().unwrap();
 }
 
 #[test]
