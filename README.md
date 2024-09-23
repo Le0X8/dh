@@ -5,10 +5,13 @@ Data handling in Rust, made easy.
 ## Features
 
 - Read and write files in streams
+- No unsafe code
+
+### Planned features
+
 - Read and write u8 vectors
 - Partial read & write access
 - Temporary file storage for large data
-- No unsafe code
 - std::io::Read and std::io::Write implementations
 
 ## Installation
