@@ -85,6 +85,502 @@ where
         result
     }
 
+    fn read_u8_at(&mut self, pos: u64) -> Result<u8> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u8();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_u16le_at(&mut self, pos: u64) -> Result<u16> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u16le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_u16be_at(&mut self, pos: u64) -> Result<u16> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u16be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_u32le_at(&mut self, pos: u64) -> Result<u32> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u32le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_u32be_at(&mut self, pos: u64) -> Result<u32> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u32be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_u64le_at(&mut self, pos: u64) -> Result<u64> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u64le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_u64be_at(&mut self, pos: u64) -> Result<u64> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_u64be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu7_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu7();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu7r_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu7r();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu15le_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu15le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu15be_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu15be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu15ler_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu15ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu15ber_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu15ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu31le_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu31le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu31be_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu31be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu31ler_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu31ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu31ber_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu31ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu63le_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu63le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu63be_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu63be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu63ler_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu63ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu63ber_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu63ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu127le_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu127le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu127be_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu127be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu127ler_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu127ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vu127ber_at(&mut self, pos: u64) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vu127ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_uxle_at(&mut self, pos: u64, size: u8) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_uxle(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_uxbe_at(&mut self, pos: u64, size: u8) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_uxbe(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vuxle_at(&mut self, pos: u64, size: u8) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vuxle(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vuxbe_at(&mut self, pos: u64, size: u8) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vuxbe(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vuxler_at(&mut self, pos: u64, size: u8) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vuxler(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vuxber_at(&mut self, pos: u64, size: u8) -> Result<u128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vuxber(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i8_at(&mut self, pos: u64) -> Result<i8> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i8();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i16le_at(&mut self, pos: u64) -> Result<i16> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i16le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i16be_at(&mut self, pos: u64) -> Result<i16> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i16be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i32le_at(&mut self, pos: u64) -> Result<i32> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i32le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i32be_at(&mut self, pos: u64) -> Result<i32> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i32be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i64le_at(&mut self, pos: u64) -> Result<i64> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i64le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i64be_at(&mut self, pos: u64) -> Result<i64> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i64be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi7_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi7();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi7r_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi7r();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi15le_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi15le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi15be_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi15be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi15ler_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi15ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi15ber_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi15ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi31le_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi31le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi31be_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi31be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi31ler_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi31ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi31ber_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi31ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi63le_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi63le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi63be_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi63be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi63ler_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi63ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi63ber_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi63ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi127le_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi127le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi127be_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi127be();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi127ler_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi127ler();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vi127ber_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vi127ber();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_ixle_at(&mut self, pos: u64, size: u8) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_ixle(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_ixbe_at(&mut self, pos: u64, size: u8) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_ixbe(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vixle_at(&mut self, pos: u64, size: u8) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vixle(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vixbe_at(&mut self, pos: u64, size: u8) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vixbe(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vixler_at(&mut self, pos: u64, size: u8) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vixler(size);
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_vixber_at(&mut self, pos: u64, size: u8) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vixber(size);
+        self.to(pos_before)?;
+        result
+    }
+
     fn read_utf8(&mut self, length: u64) -> Result<String> {
         let mut buf = vec![0; length as usize];
         self.read_exact(&mut buf)?;

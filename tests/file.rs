@@ -8,38 +8,27 @@ fn r000() {
     let size = reader.size().unwrap();
     assert_eq!(reader.read_utf8_at(0, size).unwrap(), "Hello, world!");
 
-    assert_eq!(reader.read_u8().unwrap(), 0x48);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u8_at(0).unwrap(), 0x48);
 
-    assert_eq!(reader.read_u16le().unwrap(), 0x6548);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u16le_at(0).unwrap(), 0x6548);
 
-    assert_eq!(reader.read_u16be().unwrap(), 0x4865);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u16be_at(0).unwrap(), 0x4865);
 
-    assert_eq!(reader.read_u32le().unwrap(), 0x6c6c6548);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u32le_at(0).unwrap(), 0x6c6c6548);
 
-    assert_eq!(reader.read_u32be().unwrap(), 0x48656c6c);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u32be_at(0).unwrap(), 0x48656c6c);
 
-    assert_eq!(reader.read_u64le().unwrap(), 0x77202c6f6c6c6548);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u64le_at(0).unwrap(), 0x77202c6f6c6c6548);
 
-    assert_eq!(reader.read_u64be().unwrap(), 0x48656c6c6f2c2077);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_u64be_at(0).unwrap(), 0x48656c6c6f2c2077);
 
-    assert_eq!(reader.read_uxle(3).unwrap(), 0x6c6548);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_uxle_at(0, 3).unwrap(), 0x6c6548);
 
-    assert_eq!(reader.read_uxle(7).unwrap(), 0x202c6f6c6c6548);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_uxle_at(0, 7).unwrap(), 0x202c6f6c6c6548);
 
-    assert_eq!(reader.read_uxbe(3).unwrap(), 0x48656c);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_uxbe_at(0, 3).unwrap(), 0x48656c);
 
-    assert_eq!(reader.read_uxbe(7).unwrap(), 0x48656c6c6f2c20);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_uxbe_at(0, 7).unwrap(), 0x48656c6c6f2c20);
 }
 
 #[test]
@@ -47,74 +36,59 @@ fn r001() {
     let path = "tests/samples/001";
     let mut reader = file::open_r(path).unwrap();
 
-    assert_eq!(reader.read_vu7().unwrap(), 0b1101100_1100101_1001000);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_vu7_at(0).unwrap(), 0b1101100_1100101_1001000);
 
-    assert_eq!(reader.read_vu7r().unwrap(), 0b1001000_1100101_1101100);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_vu7r_at(0).unwrap(), 0b1001000_1100101_1101100);
 
     assert_eq!(
-        reader.read_vu15le().unwrap(),
+        reader.read_vu15le_at(0).unwrap(),
         0b010110011001111_110110001101100_110010111001000
     );
-    reader.rewind().unwrap();
 
     assert_eq!(
-        reader.read_vu15be().unwrap(),
+        reader.read_vu15be_at(0).unwrap(),
         0b110110011101100_100100011100101
     );
-    reader.rewind().unwrap();
 
     assert_eq!(
-        reader.read_vu15ler().unwrap(),
+        reader.read_vu15ler_at(0).unwrap(),
         0b110010111001000_110110001101100_010110011001111
     );
-    reader.rewind().unwrap();
 
     assert_eq!(
-        reader.read_vu15ber().unwrap(),
+        reader.read_vu15ber_at(0).unwrap(),
         0b100100011100101_110110011101100
     );
-    reader.rewind().unwrap();
 
-    assert_eq!(reader.read_i8().unwrap(), -56);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_i8_at(0).unwrap(), -56);
 
-    assert_eq!(reader.read_i16le().unwrap(), -6712);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_i16le_at(0).unwrap(), -6712);
 
-    assert_eq!(reader.read_i16be().unwrap(), -14107);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_i16be_at(0).unwrap(), -14107);
 
-    assert_eq!(reader.read_vi7().unwrap(), -0b0101100_1100101_1001000);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_vi7_at(0).unwrap(), -0b0101100_1100101_1001000);
 
-    assert_eq!(reader.read_vi7r().unwrap(), -0b0001000_1100101_1101100);
-    reader.rewind().unwrap();
+    assert_eq!(reader.read_vi7r_at(0).unwrap(), -0b0001000_1100101_1101100);
 
     assert_eq!(
-        reader.read_vi15le().unwrap(),
+        reader.read_vi15le_at(0).unwrap(),
         0b010110011001111_110110001101100_110010111001000
     );
-    reader.rewind().unwrap();
 
     assert_eq!(
-        reader.read_vi15be().unwrap(),
+        reader.read_vi15be_at(0).unwrap(),
         -0b010110011101100_100100011100101
     );
-    reader.rewind().unwrap();
 
     assert_eq!(
-        reader.read_vi15ler().unwrap(),
+        reader.read_vi15ler_at(0).unwrap(),
         -0b010010111001000_110110001101100_010110011001111
     );
-    reader.rewind().unwrap();
 
     assert_eq!(
-        reader.read_vi15ber().unwrap(),
+        reader.read_vi15ber_at(0).unwrap(),
         -0b000100011100101_110110011101100
     );
-    reader.rewind().unwrap();
 }
 
 #[test]
