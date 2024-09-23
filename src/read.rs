@@ -58,6 +58,10 @@ where
         self.seek(std::io::SeekFrom::Start(0))
     }
 
+    fn end(&mut self) -> Result<u64> {
+        self.seek(std::io::SeekFrom::End(0))
+    }
+
     fn to(&mut self, pos: u64) -> Result<u64> {
         self.seek(std::io::SeekFrom::Start(pos))
     }
@@ -67,100 +71,55 @@ where
     }
 
     fn size(&mut self) -> Result<u64> {
-        let pos_before = match self.stream_position() {
-            Ok(p) => p,
-            Err(e) => return Err(e),
-        };
-        let size = self.seek(std::io::SeekFrom::End(0));
-        match self.seek(std::io::SeekFrom::Start(pos_before)) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
+        let pos_before = self.stream_position()?;
+        let size = self.end();
+        self.to(pos_before)?;
         size
     }
 
     fn read_utf8_at(&mut self, pos: u64, len: u64) -> Result<String> {
-        let pos_before = match self.stream_position() {
-            Ok(p) => p,
-            Err(e) => return Err(e),
-        };
-        match self.seek(std::io::SeekFrom::Start(pos)) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
-        let s = self.read_utf8(len);
-        match self.seek(std::io::SeekFrom::Start(pos_before)) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
-        s
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_utf8(len);
+        self.to(pos_before)?;
+        result
     }
 
     fn read_utf8(&mut self, length: u64) -> Result<String> {
-        let length = length as usize;
-        let mut buf = vec![0; length];
-        match self.read(&mut buf) {
-            Ok(read_length) => {
-                if read_length != length {
-                    return Err(ErrorKind::UnexpectedEof.into());
-                }
-
-                Ok(match String::from_utf8(buf) {
-                    Ok(str) => str,
-                    Err(_) => return Err(ErrorKind::InvalidData.into()),
-                })
-            }
-            Err(err) => Err(err),
-        }
+        let mut buf = vec![0; length as usize];
+        self.read_exact(&mut buf)?;
+        Ok(match String::from_utf8(buf) {
+            Ok(str) => str,
+            Err(_) => return Err(ErrorKind::InvalidData.into()),
+        })
     }
 
     fn read_u8(&mut self) -> Result<u8> {
-        match self.read_uxle(1) {
-            Ok(byte) => Ok(byte as u8),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxle(1)? as u8)
     }
 
     fn read_u16le(&mut self) -> Result<u16> {
-        match self.read_uxle(2) {
-            Ok(byte) => Ok(byte as u16),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxle(2)? as u16)
     }
 
     fn read_u16be(&mut self) -> Result<u16> {
-        match self.read_uxbe(2) {
-            Ok(byte) => Ok(byte as u16),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxbe(2)? as u16)
     }
 
     fn read_u32le(&mut self) -> Result<u32> {
-        match self.read_uxle(4) {
-            Ok(byte) => Ok(byte as u32),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxle(4)? as u32)
     }
 
     fn read_u32be(&mut self) -> Result<u32> {
-        match self.read_uxbe(4) {
-            Ok(byte) => Ok(byte as u32),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxbe(4)? as u32)
     }
 
     fn read_u64le(&mut self) -> Result<u64> {
-        match self.read_uxle(8) {
-            Ok(byte) => Ok(byte as u64),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxle(8)? as u64)
     }
 
     fn read_u64be(&mut self) -> Result<u64> {
-        match self.read_uxbe(8) {
-            Ok(byte) => Ok(byte as u64),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_uxbe(8)? as u64)
     }
 
     fn read_u128le(&mut self) -> Result<u128> {
@@ -245,10 +204,7 @@ where
 
     fn read_uxle(&mut self, size: u8) -> Result<u128> {
         let mut buffer = [0u8; 16];
-        match self.read_exact(&mut buffer[0..size as usize]) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
+        self.read_exact(&mut buffer[0..size as usize])?;
 
         let mut result = 0u128;
         for (i, &byte) in buffer.iter().enumerate().take(size as usize) {
@@ -260,10 +216,7 @@ where
 
     fn read_uxbe(&mut self, size: u8) -> Result<u128> {
         let mut buffer = [0u8; 16];
-        match self.read_exact(&mut buffer[0..size as usize]) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
+        self.read_exact(&mut buffer[0..size as usize])?;
 
         let mut result = 0u128;
         for (i, &byte) in buffer.iter().enumerate().take(size as usize) {
@@ -274,80 +227,47 @@ where
     }
 
     fn read_vuxle(&mut self, size: u8) -> Result<u128> {
-        match parse_vux(&mut |s| self.read_uxle(s), size) {
-            Ok((result, _)) => Ok(result),
-            Err(err) => Err(err),
-        }
+        Ok(parse_vux(&mut |s| self.read_uxle(s), size)?.0)
     }
 
     fn read_vuxbe(&mut self, size: u8) -> Result<u128> {
-        match parse_vux(&mut |s| self.read_uxbe(s), size) {
-            Ok((result, _)) => Ok(result),
-            Err(err) => Err(err),
-        }
+        Ok(parse_vux(&mut |s| self.read_uxbe(s), size)?.0)
     }
 
     fn read_vuxler(&mut self, size: u8) -> Result<u128> {
-        match parse_vuxr(&mut |s| self.read_uxle(s), size) {
-            Ok((result, _)) => Ok(result),
-            Err(err) => Err(err),
-        }
+        Ok(parse_vuxr(&mut |s| self.read_uxle(s), size)?.0)
     }
 
     fn read_vuxber(&mut self, size: u8) -> Result<u128> {
-        match parse_vuxr(&mut |s| self.read_uxbe(s), size) {
-            Ok((result, _)) => Ok(result),
-            Err(err) => Err(err),
-        }
+        Ok(parse_vuxr(&mut |s| self.read_uxbe(s), size)?.0)
     }
 
     fn read_i8(&mut self) -> Result<i8> {
-        match self.read_ixle(1) {
-            Ok(byte) => Ok(byte as i8),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixle(1)? as i8)
     }
 
     fn read_i16le(&mut self) -> Result<i16> {
-        match self.read_ixle(2) {
-            Ok(byte) => Ok(byte as i16),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixle(2)? as i16)
     }
 
     fn read_i16be(&mut self) -> Result<i16> {
-        match self.read_ixbe(2) {
-            Ok(byte) => Ok(byte as i16),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixbe(2)? as i16)
     }
 
     fn read_i32le(&mut self) -> Result<i32> {
-        match self.read_ixle(4) {
-            Ok(byte) => Ok(byte as i32),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixle(4)? as i32)
     }
 
     fn read_i32be(&mut self) -> Result<i32> {
-        match self.read_ixbe(4) {
-            Ok(byte) => Ok(byte as i32),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixbe(4)? as i32)
     }
 
     fn read_i64le(&mut self) -> Result<i64> {
-        match self.read_ixle(8) {
-            Ok(byte) => Ok(byte as i64),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixle(8)? as i64)
     }
 
     fn read_i64be(&mut self) -> Result<i64> {
-        match self.read_ixbe(8) {
-            Ok(byte) => Ok(byte as i64),
-            Err(err) => Err(err),
-        }
+        Ok(self.read_ixbe(8)? as i64)
     }
 
     fn read_i128le(&mut self) -> Result<i128> {
@@ -432,10 +352,7 @@ where
 
     fn read_ixle(&mut self, size: u8) -> Result<i128> {
         let mut buffer = [0u8; 16];
-        match self.read_exact(&mut buffer[0..size as usize]) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
+        self.read_exact(&mut buffer[0..size as usize])?;
 
         let mut result = 0i128;
         for (i, &byte) in buffer.iter().enumerate().take(size as usize) {
@@ -447,10 +364,7 @@ where
 
     fn read_ixbe(&mut self, size: u8) -> Result<i128> {
         let mut buffer = [0u8; 16];
-        match self.read_exact(&mut buffer[0..size as usize]) {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
+        self.read_exact(&mut buffer[0..size as usize])?;
 
         let mut result = 0i128;
         for (i, &byte) in buffer.iter().enumerate().take(size as usize) {
