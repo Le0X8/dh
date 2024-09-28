@@ -1,6 +1,17 @@
-# `dh`
+<p style="text-align: center;">
+    <img alt="Crates.io Version" src="https://img.shields.io/crates/v/dh?style=for-the-badge">
+    <img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/Le0X8/dh?style=for-the-badge">
+    <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/Le0X8/dh?style=for-the-badge">
+    <img alt="Crates.io Total Downloads" src="https://img.shields.io/crates/d/dh?style=for-the-badge">
+</p>
 
-Data handling in Rust, made easy.
+<h1 style="text-align: center;">
+    <code>dh</code>
+</h1>
+
+<p style="text-align: center;">
+    <b>Data handling in Rust, made easy.</b>
+</p>
 
 ## Features
 
@@ -9,6 +20,7 @@ Data handling in Rust, made easy.
 
 ### Planned features
 
+- Floating point number support
 - Read and write u8 vectors
 - Partial read & write access
 - Temporary file storage for large data
@@ -49,16 +61,17 @@ fn main() {
 ### Open a file in read/write mode
 
 ```rust
-use dh::{self, Readable, Writable};
+use dh::{self, Readable, Writable, Rw};
 
 fn main() {
     let mut file = dh::file::open_rw("data.txt").unwrap();
     file.write_utf8_at("Hello, world!\n", 0);
-    file.rewind();
+    file.rw_rewind(); // just calling rewind would result into a conflict between Readable and Writable
     assert_eq!(file.read_utf8(file.size()), "Hello, world!\n");
 }
 ```
 
+<!--
 ### Read and write u8 vectors
 
 ```rust
@@ -116,3 +129,4 @@ fn main() {
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+-->
