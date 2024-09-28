@@ -1,15 +1,15 @@
-<p style="text-align: center;">
+<p align="center">
     <img alt="Crates.io Version" src="https://img.shields.io/crates/v/dh?style=for-the-badge">
     <img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/Le0X8/dh?style=for-the-badge">
     <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/Le0X8/dh?style=for-the-badge">
     <img alt="Crates.io Total Downloads" src="https://img.shields.io/crates/d/dh?style=for-the-badge">
 </p>
 
-<h1 style="text-align: center;">
+<h1 align="center">
     <code>dh</code>
 </h1>
 
-<p style="text-align: center;">
+<p align="center">
     <b>Data handling in Rust, made easy.</b>
 </p>
 
