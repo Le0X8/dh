@@ -2,6 +2,14 @@
 name = "dh"
 version = "0.1.0"
 edition = "2021"
+description = "Data handling in Rust, made easy."
+license = "MIT"
+license-file = "LICENSE"
+repository = "https://github.com/Le0X8/dh"
+authors = [ "Leonard Lesinski <84378319+Le0X8@users.noreply.github.com>" ]
+readme = "README.md"
+keywords = [ "data", "files", "read", "write", "rw" ]
+categories = [ "data-structures", "encoding", "filesystem", "parsing" ]
 
 [dependencies]
 fs4 = "0.9.1"
