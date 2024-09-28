@@ -1,4 +1,4 @@
-use dh::{file, Readable, Writable};
+use dh::{file, Readable, Rw, Writable};
 use std::fs::remove_file;
 
 #[test]
@@ -114,13 +114,26 @@ fn w001() {
     let path = "tests/samples/w001";
     let mut writer = file::open_w(path).unwrap();
     writer.write_vu31le(0b1101100_1100101_1001000).unwrap();
-    writer.write_vuxbe(3, 0b1101100_1100101_1001000).unwrap();
+    writer.write_vixler(3, 0b1101100_1100101_1001000).unwrap();
     writer.close().unwrap();
 
     let mut reader = file::open_r(path).unwrap();
     assert_eq!(reader.read_vuxle(4).unwrap(), 0b1101100_1100101_1001000);
-    assert_eq!(reader.read_vuxbe(3).unwrap(), 0b1101100_1100101_1001000);
+    assert_eq!(reader.read_vixler(3).unwrap(), 0b1101100_1100101_1001000);
     reader.close().unwrap();
+
+    remove_file(path).unwrap();
+}
+
+#[test]
+fn rw000() {
+    let path = "tests/samples/rw000";
+    let mut rw = file::open_rw(path).unwrap();
+    let str = String::from("Hello, world!");
+
+    rw.write_utf8(&str).unwrap();
+    rw.rw_rewind().unwrap();
+    assert_eq!(rw.read_utf8(str.len() as u64).unwrap(), str);
 
     remove_file(path).unwrap();
 }

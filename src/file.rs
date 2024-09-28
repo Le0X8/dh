@@ -1,7 +1,7 @@
-use crate::{Readable, Writable};
+use crate::{Readable, Rw, Writable};
 use fs4::fs_std::FileExt;
 use std::{
-    fs::File,
+    fs::{File, OpenOptions},
     io::{Read, Result, Seek, Write},
     path::Path,
 };
@@ -112,4 +112,92 @@ where
     }
 }
 
-pub struct RwFile {}
+pub struct RwFile {
+    file: File,
+}
+
+impl Read for RwFile {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        self.file.read(buf)
+    }
+}
+
+impl Write for RwFile {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        self.file.write(buf)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        self.file.flush()
+    }
+}
+
+impl Seek for RwFile {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> Result<u64> {
+        self.file.seek(pos)
+    }
+}
+
+impl Readable for RwFile {
+    fn lock(&mut self) -> Result<()> {
+        self.file.lock_exclusive()
+    }
+
+    fn unlock(&mut self) -> Result<()> {
+        self.file.unlock()
+    }
+
+    fn close(self) -> Result<()> {
+        match self.file.unlock() {
+            Ok(_) => (),
+            Err(e) => return Err(e),
+        };
+        self.file.sync_all()
+    }
+}
+
+impl Writable for RwFile {
+    fn alloc(&mut self, len: u64) -> Result<()> {
+        match self.file.allocate(len) {
+            Ok(_) => Ok(()),
+            Err(_) => match self.file.set_len(len) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            },
+        }
+    }
+
+    fn lock(&mut self) -> Result<()> {
+        self.file.lock_exclusive()
+    }
+
+    fn unlock(&mut self) -> Result<()> {
+        self.file.unlock()
+    }
+
+    fn close(self) -> Result<()> {
+        match self.file.unlock() {
+            Ok(_) => (),
+            Err(e) => return Err(e),
+        };
+        self.file.sync_all()
+    }
+}
+
+impl Rw for RwFile {}
+
+pub fn open_rw<P>(path: P) -> Result<RwFile>
+where
+    P: AsRef<Path>,
+{
+    match OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(path)
+    {
+        Ok(file) => Ok(RwFile { file }),
+        Err(e) => Err(e),
+    }
+}

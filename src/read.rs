@@ -389,6 +389,22 @@ where
         result
     }
 
+    fn read_i128le_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i128le();
+        self.to(pos_before)?;
+        result
+    }
+
+    fn read_i128be_at(&mut self, pos: u64) -> Result<i128> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_i128be();
+        self.to(pos_before)?;
+        result
+    }
+
     fn read_vi7_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
