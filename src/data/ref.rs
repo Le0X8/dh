@@ -1,15 +1,12 @@
 use crate::{DataType, Readable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom};
 
-mod r#ref;
-pub use r#ref::{close as close_ref, read as read_ref, ClosableRefData, RRefData};
-
-pub struct RData {
-    data: Vec<u8>,
+pub struct RRefData<'a> {
+    data: &'a Vec<u8>,
     pos: usize,
 }
 
-impl Read for RData {
+impl Read for RRefData<'_> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let len = buf.len();
         let data_len = self.data.len();
@@ -26,7 +23,7 @@ impl Read for RData {
     }
 }
 
-impl Seek for RData {
+impl Seek for RRefData<'_> {
     fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
         use SeekFrom::*;
         let pos = match pos {
@@ -45,7 +42,7 @@ impl Seek for RData {
     }
 }
 
-impl<'a> Readable<'a> for RData {
+impl<'a> Readable<'a> for RRefData<'a> {
     fn lock(&mut self) -> Result<()> {
         Ok(())
     }
@@ -55,28 +52,28 @@ impl<'a> Readable<'a> for RData {
     }
 
     fn close(self) -> Result<Option<DataType<'a>>> {
-        Ok(Some(DataType::Vec(self.data)))
+        Ok(Some(DataType::VecRef(self.data)))
     }
 }
 
-pub enum ClosableData {
-    R(RData),
+pub enum ClosableRefData<'a> {
+    R(RRefData<'a>),
 }
 
-impl From<RData> for ClosableData {
-    fn from(r: RData) -> Self {
-        ClosableData::R(r)
+impl<'a> From<RRefData<'a>> for ClosableRefData<'a> {
+    fn from(r: RRefData<'a>) -> Self {
+        ClosableRefData::R(r)
     }
 }
 
-pub fn read(data: Vec<u8>) -> RData {
-    RData { data, pos: 0 }
+pub fn read(data: &Vec<u8>) -> RRefData {
+    RRefData { data, pos: 0 }
 }
 
-pub fn close<T: Into<ClosableData>>(closable: T) -> Result<Vec<u8>> {
+pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> Result<&'a Vec<u8>> {
     match closable.into() {
-        ClosableData::R(r) => match r.close()? {
-            Some(DataType::Vec(data)) => Ok(data),
+        ClosableRefData::R(r) => match r.close()? {
+            Some(DataType::VecRef(data)) => Ok(data),
             _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
         },
     }

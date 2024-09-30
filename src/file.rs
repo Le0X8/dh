@@ -1,4 +1,4 @@
-use crate::{Readable, Rw, Writable};
+use crate::{DataType, Readable, Rw, Writable};
 use fs4::fs_std::FileExt;
 use std::{
     fs::{File, OpenOptions},
@@ -22,7 +22,7 @@ impl Seek for RFile {
     }
 }
 
-impl Readable for RFile {
+impl<'a> Readable<'a> for RFile {
     fn lock(&mut self) -> Result<()> {
         self.file.lock_exclusive()
     }
@@ -31,12 +31,10 @@ impl Readable for RFile {
         self.file.unlock()
     }
 
-    fn close(self) -> Result<()> {
-        match self.file.unlock() {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
-        self.file.sync_all()
+    fn close(self) -> Result<Option<DataType<'a>>> {
+        self.file.unlock()?;
+        self.file.sync_all()?;
+        Ok(None)
     }
 }
 
@@ -93,12 +91,11 @@ impl Writable for WFile {
         self.file.unlock()
     }
 
-    fn close(self) -> Result<()> {
-        match self.file.unlock() {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
-        self.file.sync_all()
+    fn close<'a>(self) -> Result<Option<DataType<'a>>> {
+        self.file.unlock()?;
+        self.file.sync_all()?;
+
+        Ok(None)
     }
 }
 
@@ -138,7 +135,7 @@ impl Seek for RwFile {
     }
 }
 
-impl Readable for RwFile {
+impl<'a> Readable<'a> for RwFile {
     fn lock(&mut self) -> Result<()> {
         self.file.lock_exclusive()
     }
@@ -147,12 +144,10 @@ impl Readable for RwFile {
         self.file.unlock()
     }
 
-    fn close(self) -> Result<()> {
-        match self.file.unlock() {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
-        self.file.sync_all()
+    fn close(self) -> Result<Option<DataType<'a>>> {
+        self.file.unlock()?;
+        self.file.sync_all()?;
+        Ok(None)
     }
 }
 
@@ -175,16 +170,14 @@ impl Writable for RwFile {
         self.file.unlock()
     }
 
-    fn close(self) -> Result<()> {
-        match self.file.unlock() {
-            Ok(_) => (),
-            Err(e) => return Err(e),
-        };
-        self.file.sync_all()
+    fn close<'a>(self) -> Result<Option<DataType<'a>>> {
+        self.file.unlock()?;
+        self.file.sync_all()?;
+        Ok(None)
     }
 }
 
-impl Rw for RwFile {}
+impl Rw<'_> for RwFile {}
 
 pub fn open_rw<P>(path: P) -> Result<RwFile>
 where

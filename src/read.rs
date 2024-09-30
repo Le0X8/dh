@@ -1,3 +1,4 @@
+use crate::DataType;
 use std::{
     io::{ErrorKind, Read, Result, Seek},
     vec,
@@ -46,13 +47,13 @@ fn parse_vuxr(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(
     Ok((result, i))
 }
 
-pub trait Readable
+pub trait Readable<'a>
 where
     Self: Read + Seek,
 {
     fn lock(&mut self) -> Result<()>;
     fn unlock(&mut self) -> Result<()>;
-    fn close(self) -> Result<()>;
+    fn close(self) -> Result<Option<DataType<'a>>>;
 
     fn rewind(&mut self) -> Result<u64> {
         self.seek(std::io::SeekFrom::Start(0))

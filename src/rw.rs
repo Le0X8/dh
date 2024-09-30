@@ -2,9 +2,9 @@ use std::io::Result;
 
 use crate::{Readable, Writable};
 
-pub trait Rw
+pub trait Rw<'a>
 where
-    Self: Readable + Writable,
+    Self: Readable<'a> + Writable,
 {
     fn rw_rewind(&mut self) -> Result<u64> {
         Writable::rewind(self)

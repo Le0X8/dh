@@ -1,5 +1,7 @@
 use std::io::{Result, Seek, Write};
 
+use crate::DataType;
+
 fn signed_to_unsigned(num: i128) -> u128 {
     u128::from_ne_bytes(num.to_ne_bytes()) // there might be a better way to do this but this worked instantly so I leave it this way
 }
@@ -42,7 +44,7 @@ where
     fn alloc(&mut self, len: u64) -> Result<()>;
     fn lock(&mut self) -> Result<()>;
     fn unlock(&mut self) -> Result<()>;
-    fn close(self) -> Result<()>;
+    fn close<'a>(self) -> Result<Option<DataType<'a>>>;
 
     fn rewind(&mut self) -> Result<u64> {
         self.seek(std::io::SeekFrom::Start(0))
