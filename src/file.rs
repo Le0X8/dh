@@ -72,7 +72,7 @@ impl Seek for WFile {
     }
 }
 
-impl Writable for WFile {
+impl<'a> Writable<'a> for WFile {
     fn alloc(&mut self, len: u64) -> Result<()> {
         match self.file.allocate(len) {
             Ok(_) => Ok(()),
@@ -91,7 +91,7 @@ impl Writable for WFile {
         self.file.unlock()
     }
 
-    fn close<'a>(self) -> Result<Option<DataType<'a>>> {
+    fn close(self) -> Result<Option<DataType<'a>>> {
         self.file.unlock()?;
         self.file.sync_all()?;
 
@@ -151,7 +151,7 @@ impl<'a> Readable<'a> for RwFile {
     }
 }
 
-impl Writable for RwFile {
+impl<'a> Writable<'a> for RwFile {
     fn alloc(&mut self, len: u64) -> Result<()> {
         match self.file.allocate(len) {
             Ok(_) => Ok(()),
@@ -170,7 +170,7 @@ impl Writable for RwFile {
         self.file.unlock()
     }
 
-    fn close<'a>(self) -> Result<Option<DataType<'a>>> {
+    fn close(self) -> Result<Option<DataType<'a>>> {
         self.file.unlock()?;
         self.file.sync_all()?;
         Ok(None)

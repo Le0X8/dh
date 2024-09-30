@@ -37,14 +37,14 @@ fn serialize_vuxle(size: u8, num: u128, be: bool, rev: bool) -> Vec<u8> {
     buf
 }
 
-pub trait Writable
+pub trait Writable<'a>
 where
     Self: Write + Seek,
 {
     fn alloc(&mut self, len: u64) -> Result<()>;
     fn lock(&mut self) -> Result<()>;
     fn unlock(&mut self) -> Result<()>;
-    fn close<'a>(self) -> Result<Option<DataType<'a>>>;
+    fn close(self) -> Result<Option<DataType<'a>>>;
 
     fn rewind(&mut self) -> Result<u64> {
         self.seek(std::io::SeekFrom::Start(0))

@@ -2,7 +2,10 @@ use crate::{DataType, Readable, Rw, Writable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 
 mod r#ref;
-pub use r#ref::{close as close_ref, read as read_ref, ClosableRefData, RRefData};
+pub use r#ref::{
+    close as close_ref, close_mut, read as read_ref, rw as rw_ref, write as write_ref,
+    ClosableRefData, RRefData,
+};
 
 pub struct RData {
     data: Vec<u8>,
@@ -112,7 +115,7 @@ impl Seek for WData {
     }
 }
 
-impl Writable for WData {
+impl<'a> Writable<'a> for WData {
     fn alloc(&mut self, len: u64) -> Result<()> {
         self.data.resize(len as usize, 0);
         Ok(())
@@ -126,7 +129,7 @@ impl Writable for WData {
         Ok(())
     }
 
-    fn close<'a>(self) -> Result<Option<DataType<'a>>>
+    fn close(self) -> Result<Option<DataType<'a>>>
     where
         Self: 'a,
     {
@@ -218,7 +221,7 @@ impl<'a> Readable<'a> for RwData {
     }
 }
 
-impl Writable for RwData {
+impl<'a> Writable<'a> for RwData {
     fn alloc(&mut self, len: u64) -> Result<()> {
         self.data.resize(len as usize, 0);
         Ok(())
@@ -232,7 +235,7 @@ impl Writable for RwData {
         Ok(())
     }
 
-    fn close<'a>(self) -> Result<Option<DataType<'a>>>
+    fn close(self) -> Result<Option<DataType<'a>>>
     where
         Self: 'a,
     {

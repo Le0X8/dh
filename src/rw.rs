@@ -4,7 +4,7 @@ use crate::{DataType, Readable, Writable};
 
 pub trait Rw<'a>
 where
-    Self: Readable<'a> + Writable,
+    Self: Readable<'a> + Writable<'a>,
 {
     fn rw_close(self) -> Result<Option<DataType<'a>>>;
 
