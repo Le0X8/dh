@@ -25,14 +25,16 @@
 
 - Read and write files in streams
 - No unsafe code
+- Support for a lot of data types (including variable length integers and custom length integers)
+- Read and write u8 vectors
 
 ### Planned features
 
 - Floating point number support
-- Read and write u8 vectors
 - Partial read & write access
 - Temporary file storage for large data
 - std::io::Read and std::io::Write implementations
+- Copying data from a `Readable` to a `Writable`
 
 ## Installation
 
@@ -57,7 +59,7 @@ fn main() {
 ### Simple file writing
 
 ```rust
-use dh::{self, Readable, Writable};
+use dh::{self, Writable};
 
 fn main() {
     let mut file = dh::file::open_w("data.txt").unwrap();
@@ -79,34 +81,54 @@ fn main() {
 }
 ```
 
-<!--
 ### Read and write u8 vectors
 
+#### Recommended: borrowing
+
+##### Immutable borrowing
+
 ```rust
-use dh::{self, Readable, Writable};
+use dh::{self, Readable};
 
 fn main() {
-    let mut data = vec![0u8; 1];
-    let mut rw = dh::data::open_rw(&mut data);
-    rw.write_u8(31);
-    rw.rewind();
+    let mut data = vec![31u8; 1];
+    let mut rw = dh::data::read_ref(&data);
     assert_eq!(rw.read_u8(), 31);
 }
 ```
 
-or
+##### Mutable borrowing
 
 ```rust
-use dh::{self, Readable, Writable};
+use dh::{self, Readable, Writable, Rw};
+
+fn main() {
+    let mut data = vec![0u8; 1];
+    let mut rw = dh::data::rw_ref(&mut data);
+    rw.write_u8(31);
+    rw.rw_rewind();
+    assert_eq!(rw.read_u8(), 31);
+}
+```
+
+#### Alternative: moving
+
+```rust
+use dh::{self, Readable, Writable, Rw};
 
 fn main() {
     let data = vec![0u8; 1];
     let mut rw = dh::data::rw(data);
     rw.write_u8(31);
-    rw.rewind();
+    rw.rw_rewind();
     assert_eq!(rw.read_u8(), 31);
+
+    let data = dh::data::close(rw);
+    assert_eq!(data, vec![31]);
 }
 ```
+
+<!--
 
 ### Read and write u8 vectors and temporarily store them in a file
 
@@ -134,7 +156,8 @@ fn main() {
 }
 ```
 
+-->
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
--->
