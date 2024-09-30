@@ -1,3 +1,4 @@
+pub mod data;
 pub mod file;
 mod read;
 mod rw;
