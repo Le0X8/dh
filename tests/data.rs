@@ -1,4 +1,4 @@
-use dh::{data, Readable};
+use dh::{data, Readable, Rw, Writable};
 
 #[test]
 fn r000() {
@@ -20,4 +20,65 @@ fn r001() {
     assert_eq!(reader.read_u8_at(0).unwrap(), 0);
     assert_eq!(reader.read_u16le_at(6).unwrap(), 0x0706);
     assert_eq!(reader.read_u64be().unwrap(), 0x0001020304050607);
+}
+
+#[test]
+fn w000() {
+    let data = "Hello, world!".as_bytes().to_vec();
+    let mut writer = data::write(data);
+
+    writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
+
+    let data = data::close(writer).unwrap();
+    assert_eq!(data, "Hello, rust !".as_bytes());
+}
+
+#[test]
+fn w001() {
+    let data = "Hello, world!".as_bytes().to_vec();
+    let mut writer = data::write(data);
+
+    let size = writer.size().unwrap();
+    writer.alloc(size + 5).unwrap(); // not necessary but it reserves RAM and prevents reallocation
+    writer.write_utf8_at(7, &"rust world!".to_owned()).unwrap();
+
+    let data = data::close(writer).unwrap();
+    assert_eq!(data, "Hello, rust world!".as_bytes());
+}
+
+#[test]
+fn w002() {
+    let mut writer = data::write_empty();
+
+    writer.alloc(13).unwrap();
+    writer
+        .write_utf8_at(0, &"Hello, world!".to_owned())
+        .unwrap();
+
+    let data = data::close(writer).unwrap();
+    assert_eq!(data, "Hello, world!".as_bytes());
+}
+
+#[test]
+fn w003() {
+    let mut writer = data::write_new(13); // better than w002
+
+    writer
+        .write_utf8_at(0, &"Hello, world!".to_owned())
+        .unwrap();
+
+    let data = data::close(writer).unwrap();
+    assert_eq!(data, "Hello, world!".as_bytes());
+}
+
+#[test]
+fn rw000() {
+    let mut rw = data::rw_new(2);
+
+    rw.write_u16be(0x1234).unwrap();
+    rw.rw_rewind().unwrap();
+    assert_eq!(rw.read_u16be().unwrap(), 0x1234);
+
+    let data = data::close(rw).unwrap();
+    assert_eq!(data, vec![0x12, 0x34]);
 }

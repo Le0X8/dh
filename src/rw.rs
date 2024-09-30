@@ -1,11 +1,13 @@
 use std::io::Result;
 
-use crate::{Readable, Writable};
+use crate::{DataType, Readable, Writable};
 
 pub trait Rw<'a>
 where
     Self: Readable<'a> + Writable,
 {
+    fn rw_close(self) -> Result<Option<DataType<'a>>>;
+
     fn rw_rewind(&mut self) -> Result<u64> {
         Writable::rewind(self)
     }

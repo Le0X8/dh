@@ -134,6 +134,7 @@ fn rw000() {
     rw.write_utf8(&str).unwrap();
     rw.rw_rewind().unwrap();
     assert_eq!(rw.read_utf8(str.len() as u64).unwrap(), str);
+    rw.rw_close().unwrap();
 
     remove_file(path).unwrap();
 }

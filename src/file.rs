@@ -177,7 +177,13 @@ impl Writable for RwFile {
     }
 }
 
-impl Rw<'_> for RwFile {}
+impl<'a> Rw<'a> for RwFile {
+    fn rw_close(self) -> Result<Option<DataType<'a>>> {
+        self.file.unlock()?;
+        self.file.sync_all()?;
+        Ok(None)
+    }
+}
 
 pub fn open_rw<P>(path: P) -> Result<RwFile>
 where
