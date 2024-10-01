@@ -1,6 +1,7 @@
 use crate::{DataType, Readable, Rw, Writable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 
+/// A [`Vec<u8>`] reference reader.
 pub struct RRefData<'a> {
     data: &'a Vec<u8>,
     pos: usize,
@@ -56,6 +57,7 @@ impl<'a> Readable<'a> for RRefData<'a> {
     }
 }
 
+/// A [`Vec<u8>`] reference writer.
 pub struct WRefData<'a> {
     data: &'a mut Vec<u8>,
     pos: usize,
@@ -123,6 +125,7 @@ impl<'a> Writable<'a> for WRefData<'a> {
     }
 }
 
+/// A [`Vec<u8>`] reference reader and writer.
 pub struct RwRefData<'a> {
     data: &'a mut Vec<u8>,
     pos: usize,
@@ -227,6 +230,7 @@ impl<'a> Rw<'a> for RwRefData<'a> {
     }
 }
 
+/// Enumerates all the possible data types that can be passed into the [`close_ref`][close] function.
 pub enum ClosableRefData<'a> {
     R(RRefData<'a>),
     W(WRefData<'a>),
@@ -251,6 +255,7 @@ impl<'a> From<RwRefData<'a>> for ClosableRefData<'a> {
     }
 }
 
+/// Enumerates all the possible data types that can be passed into the [`close_mut`] function.
 pub enum ClosableMutData<'a> {
     W(WRefData<'a>),
     Rw(RwRefData<'a>),
@@ -268,18 +273,24 @@ impl<'a> From<RwRefData<'a>> for ClosableMutData<'a> {
     }
 }
 
+/// Creates a new reader from a [`Vec<u8>`] reference.
 pub fn read(data: &Vec<u8>) -> RRefData {
     RRefData { data, pos: 0 }
 }
 
+/// Creates a new writer from a [`Vec<u8>`] reference.
 pub fn write(data: &mut Vec<u8>) -> WRefData {
     WRefData { data, pos: 0 }
 }
 
+/// Creates a new reader and writer from a [`Vec<u8>`] reference.
 pub fn rw(data: &mut Vec<u8>) -> RwRefData {
     RwRefData { data, pos: 0 }
 }
 
+/// Closes a reader, writer, or reader and writer and returns the reference to the data it refers to.
+///
+/// To get the mutable reference to the data, use the [`close_mut`] function instead.
 pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> Result<&'a Vec<u8>> {
     match closable.into() {
         ClosableRefData::R(r) => match r.close()? {
@@ -297,6 +308,9 @@ pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> Result<&'a Vec<u8
     }
 }
 
+/// Closes a writer or reader and writer and returns the mutable reference to the data it refers to.
+///
+/// To get the immutable reference to the data, use the [`close_ref`][close] function instead.
 pub fn close_mut<'a, T: Into<ClosableMutData<'a>>>(closable: T) -> Result<&'a mut Vec<u8>> {
     match closable.into() {
         ClosableMutData::W(w) => match w.close()? {

@@ -6,6 +6,7 @@ use std::{
     path::Path,
 };
 
+/// A file reader.
 pub struct RFile {
     file: File,
 }
@@ -38,6 +39,7 @@ impl<'a> Readable<'a> for RFile {
     }
 }
 
+/// Opens a file in read-only mode.
 pub fn open_r<P>(path: P) -> Result<RFile>
 where
     P: AsRef<Path>,
@@ -50,11 +52,10 @@ where
     })
 }
 
+/// A file writer.
 pub struct WFile {
     file: File,
 }
-
-impl WFile {}
 
 impl Write for WFile {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
@@ -99,6 +100,7 @@ impl<'a> Writable<'a> for WFile {
     }
 }
 
+/// Opens a file in write-only mode.
 pub fn open_w<P>(path: P) -> Result<WFile>
 where
     P: AsRef<Path>,
@@ -109,6 +111,7 @@ where
     }
 }
 
+/// A file reader and writer.
 pub struct RwFile {
     file: File,
 }
@@ -185,6 +188,7 @@ impl<'a> Rw<'a> for RwFile {
     }
 }
 
+/// Opens a file in read-write mode.
 pub fn open_rw<P>(path: P) -> Result<RwFile>
 where
     P: AsRef<Path>,

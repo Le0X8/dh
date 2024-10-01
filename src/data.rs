@@ -4,9 +4,10 @@ use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 mod r#ref;
 pub use r#ref::{
     close as close_ref, close_mut, read as read_ref, rw as rw_ref, write as write_ref,
-    ClosableRefData, RRefData,
+    ClosableMutData, ClosableRefData, RRefData, RwRefData, WRefData,
 };
 
+/// A [`Vec<u8>`] reader.
 pub struct RData {
     data: Vec<u8>,
     pos: usize,
@@ -62,6 +63,7 @@ impl<'a> Readable<'a> for RData {
     }
 }
 
+/// A [`Vec<u8>`] writer.
 pub struct WData {
     data: Vec<u8>,
     pos: usize,
@@ -137,6 +139,7 @@ impl<'a> Writable<'a> for WData {
     }
 }
 
+/// A [`Vec<u8>`] reader and writer.
 pub struct RwData {
     data: Vec<u8>,
     pos: usize,
@@ -249,6 +252,7 @@ impl<'a> Rw<'a> for RwData {
     }
 }
 
+/// Enumerates all the possible data types that can be passed into the [`close`] function.
 pub enum ClosableData {
     R(RData),
     W(WData),
@@ -273,14 +277,17 @@ impl From<RwData> for ClosableData {
     }
 }
 
+/// Creates a new reader from a [`Vec<u8>`].
 pub fn read(data: Vec<u8>) -> RData {
     RData { data, pos: 0 }
 }
 
+/// Creates a new writer from a [`Vec<u8>`].
 pub fn write(data: Vec<u8>) -> WData {
     WData { data, pos: 0 }
 }
 
+/// Creates an empty [`Vec<u8>`] writer.
 pub fn write_empty() -> WData {
     WData {
         data: Vec::new(),
@@ -288,6 +295,7 @@ pub fn write_empty() -> WData {
     }
 }
 
+/// Creates a new [`Vec<u8>`] writer with a specific length.
 pub fn write_new(len: u64) -> WData {
     WData {
         data: vec![0; len as usize],
@@ -295,10 +303,12 @@ pub fn write_new(len: u64) -> WData {
     }
 }
 
+/// Creates a new reader and writer from a [`Vec<u8>`].
 pub fn rw(data: Vec<u8>) -> RwData {
     RwData { data, pos: 0 }
 }
 
+/// Creates an empty [`Vec<u8>`] reader and writer.
 pub fn rw_empty() -> RwData {
     RwData {
         data: Vec::new(),
@@ -306,6 +316,7 @@ pub fn rw_empty() -> RwData {
     }
 }
 
+/// Creates a new [`Vec<u8>`] reader and writer with a specific length.
 pub fn rw_new(len: u64) -> RwData {
     RwData {
         data: vec![0; len as usize],
@@ -313,6 +324,9 @@ pub fn rw_new(len: u64) -> RwData {
     }
 }
 
+/// Closes a reader, writer, or reader and writer and returns the data the structure was holding.
+///
+/// For references, please use the [`close_ref`] and [`close_mut`] functions.
 pub fn close<T: Into<ClosableData>>(closable: T) -> Result<Vec<u8>> {
     match closable.into() {
         ClosableData::R(r) => match r.close()? {
