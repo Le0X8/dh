@@ -72,6 +72,42 @@ fn w003() {
 }
 
 #[test]
+fn w004() {
+    let buf = vec![1, 2, 3, 4, 5, 6, 7, 8];
+    let mut reader = data::read_ref(&buf);
+
+    let mut writer = data::write_new(8);
+    reader.copy(8, &mut writer, 8000).unwrap(); // even if the limit is 8000, it will copy only 8 bytes
+
+    let new_buf = data::close(writer).unwrap();
+    assert_eq!(new_buf, buf);
+}
+
+#[test]
+fn w005() {
+    let buf = vec![1, 2, 3, 4];
+    let mut reader = data::read(buf);
+
+    let mut writer = data::write_new(8);
+    reader.copy_to(4, 4, &mut writer, 4).unwrap();
+
+    let new_buf = data::close(writer).unwrap();
+    assert_eq!(new_buf, vec![0, 0, 0, 0, 1, 2, 3, 4]);
+}
+
+#[test]
+fn w006() {
+    let buf = vec![1, 2, 3, 4, 5, 6, 7, 8];
+    let mut reader = data::read(buf);
+
+    let mut writer = data::write_new(8);
+    reader.copy_to_at(2, 2, 4, &mut writer, 4).unwrap();
+
+    let new_buf = data::close(writer).unwrap();
+    assert_eq!(new_buf, vec![0, 0, 3, 4, 5, 6, 0, 0]);
+}
+
+#[test]
 fn rw000() {
     let mut rw = data::rw_new(2);
 

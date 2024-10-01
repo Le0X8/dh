@@ -19,13 +19,13 @@
 - Support for a lot of data types (including variable length integers and custom length integers)
 - Read and write u8 vectors
 - std::io::Read and std::io::Write implementations for `Readable` and `Writable` (happens automatically as they extend these traits)
+- Copying data from a `Readable` to a `Writable`
 
 ### Planned features
 
 - Floating point number support
 - Partial read & write access
 - Temporary file storage for large data
-- Copying data from a `Readable` to a `Writable`
 
 ## Installation
 

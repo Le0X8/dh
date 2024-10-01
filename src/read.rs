@@ -1,5 +1,6 @@
-use crate::DataType;
+use crate::{DataType, Writable};
 use std::{
+    cmp::min,
     io::{ErrorKind, Read, Result, Seek},
     vec,
 };
@@ -87,6 +88,50 @@ where
         let size = self.end();
         self.to(pos_before)?;
         size
+    }
+
+    /// Copies data from the current position to a target at a specific position.
+    ///
+    /// This executes the [`copy`][Readable::copy] method at `pos` and then returns to the original position.
+    fn copy_at(
+        &mut self,
+        pos: u64,
+        length: u64,
+        target: &mut dyn Writable,
+        buffer_size: u64,
+    ) -> Result<()> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.copy(length, target, buffer_size);
+        self.to(pos_before)?;
+        result
+    }
+
+    /// Copies data from the current position to a target at a specific position to a specific position.
+    ///
+    /// This executes the [`copy_to`][Readable::copy_to] method at `pos` and then returns to the original position.
+    fn copy_to_at(
+        &mut self,
+        pos: u64,
+        target_pos: u64,
+        length: u64,
+        target: &mut dyn Writable,
+        buffer_size: u64,
+    ) -> Result<()> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.copy_to(target_pos, length, target, buffer_size);
+        self.to(pos_before)?;
+        result
+    }
+
+    /// Reads a byte vector at a specific position.
+    fn read_vec_at(&mut self, pos: u64, len: u64) -> Result<Vec<u8>> {
+        let pos_before = self.stream_position()?;
+        self.to(pos)?;
+        let result = self.read_vec(len);
+        self.to(pos_before)?;
+        result
     }
 
     /// Reads an UTF-8-encoded string at a specific position.
@@ -700,6 +745,76 @@ where
             Ok(str) => str,
             Err(_) => return Err(ErrorKind::InvalidData.into()),
         })
+    }
+
+    /// Copies data from the current position to a target.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut src = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let mut target = dh::data::write_new(8);
+    ///
+    /// src.copy(4, &mut target, 1024).unwrap();
+    /// src.rewind().unwrap();
+    /// src.copy(4, &mut target, 1024).unwrap();
+    ///
+    /// let data = dh::data::close(target).unwrap();
+    /// assert_eq!(data, vec![0, 1, 2, 3, 0, 1, 2, 3]);
+    /// ```
+    fn copy(&mut self, length: u64, target: &mut dyn Writable, buffer_size: u64) -> Result<()> {
+        let mut buf = vec![0; buffer_size as usize];
+        let mut remaining = length;
+
+        while remaining > 0 {
+            let read = min(remaining, buffer_size);
+            if buffer_size > read {
+                buf.resize(read as usize, 0);
+            }
+            self.read_exact(&mut buf[..read as usize])?;
+            target.write_all(&buf[..read as usize])?;
+            remaining -= read;
+        }
+        Ok(())
+    }
+
+    /// Copies data from the current position to a target to a specific position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut src = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let mut target = dh::data::write_new(8);
+    ///
+    /// src.jump(1).unwrap();
+    /// src.copy_to(2, 4, &mut target, 1024).unwrap();
+    ///
+    /// let data = dh::data::close(target).unwrap();
+    /// assert_eq!(data, vec![0, 0, 1, 2, 3, 4, 0, 0]);
+    /// ```
+    fn copy_to(
+        &mut self,
+        target_pos: u64,
+        length: u64,
+        target: &mut dyn Writable,
+        buffer_size: u64,
+    ) -> Result<()> {
+        let target_pos_before = target.stream_position()?;
+        target.to(target_pos)?;
+        let result = self.copy(length, target, buffer_size);
+        target.to(target_pos_before)?;
+        result
+    }
+
+    /// Reads a byte vector at the current position.
+    fn read_vec(&mut self, length: u64) -> Result<Vec<u8>> {
+        let mut buf = vec![0; length as usize];
+        self.read_exact(&mut buf)?;
+        Ok(buf)
     }
 
     /// Reads an unsigned 8-bit integer at the current position.
