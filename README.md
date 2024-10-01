@@ -2,9 +2,6 @@
     <a href="https://crates.io/crates/dh">
         <img alt="Crates.io Version" src="https://img.shields.io/crates/v/dh?style=for-the-badge">
     </a>
-    <a href="https://docs.rs/dh/latest/dh">
-        <img alt="docs.rs" src="https://img.shields.io/docsrs/dh?style=for-the-badge">
-    </a>
     <a href="https://github.com/Le0X8/dh/issues">
         <img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/Le0X8/dh?style=for-the-badge">
     </a>
@@ -44,6 +41,10 @@
 ```bash
 cargo add dh
 ```
+
+## Documentation
+
+The documentation can be found on [docs.rs](https://docs.rs/dh).
 
 ## Usage
 
