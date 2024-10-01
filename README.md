@@ -2,6 +2,9 @@
     <a href="https://crates.io/crates/dh">
         <img alt="Crates.io Version" src="https://img.shields.io/crates/v/dh?style=for-the-badge">
     </a>
+    <a href="https://docs.rs/dh/latest/dh">
+        <img alt="docs.rs" src="https://img.shields.io/docsrs/dh?style=for-the-badge">
+    </a>
     <a href="https://github.com/Le0X8/dh/issues">
         <img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/Le0X8/dh?style=for-the-badge">
     </a>
@@ -27,13 +30,13 @@
 - No unsafe code
 - Support for a lot of data types (including variable length integers and custom length integers)
 - Read and write u8 vectors
+- std::io::Read and std::io::Write implementations for `Readable` and `Writable` (happens automatically as they extend these traits)
 
 ### Planned features
 
 - Floating point number support
 - Partial read & write access
 - Temporary file storage for large data
-- std::io::Read and std::io::Write implementations
 - Copying data from a `Readable` to a `Writable`
 
 ## Installation
