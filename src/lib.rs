@@ -12,8 +12,7 @@
 //! ### Reading a file
 //!
 //! ```rust
-//! use dh; // import the base crate
-//! use dh::{Readable}; // import the required Readable trait (Writeable and Rw are also available)
+//! use dh::recommended::*; // import the crate with all the traits needed
 //!
 //! let mut file = dh::file::open_r("tests/samples/000").unwrap(); // this opens a file exclusively for reading
 //!
@@ -30,8 +29,7 @@
 //! ### Writing a u8 vector in R/W mode
 //!
 //! ```rust
-//! use dh; // import the base crate
-//! use dh::{Readable, Writable}; // import the required traits
+//! use dh::recommended::*; // import the crate with all the traits needed
 //!
 //! let mut data = vec![0, 1, 2, 3, 4, 5, 6, 7]; // create a vector
 //! let mut rw = dh::data::rw_ref(&mut data); // open the vector in R/W mode, just using dh::data::rw would move the vector
@@ -52,12 +50,26 @@ pub mod data;
 /// The whole set of structs and functions to handle files.
 pub mod file;
 
+/// Imports all the traits and the crate itself.
+///
+/// This is the recommended way to import the crate.
+/// [`import`] and [`recommended`] are aliases for this module.
+///
+/// ```rust
+/// use dh::prelude::*;
+/// ```
+pub mod prelude;
+
+pub use prelude as import;
+pub use prelude as recommended;
+
 mod read;
 mod rw;
 mod r#type;
 mod write;
 
 pub use data::{ClosableData, ClosableRefData};
+pub use prelude::*;
 pub use r#type::*;
 pub use read::*;
 pub use rw::*;

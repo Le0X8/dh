@@ -1,4 +1,4 @@
-use dh::{file, Readable, Rw, Writable};
+use dh::{file, recommended::*};
 use std::fs::remove_file;
 
 #[test]

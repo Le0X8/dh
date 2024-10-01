@@ -43,7 +43,7 @@ The documentation can be found on [docs.rs](https://docs.rs/dh).
 ### Simple file reading
 
 ```rust
-use dh::{self, Readable};
+use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_r("data.txt").unwrap();
@@ -55,7 +55,7 @@ fn main() {
 ### Simple file writing
 
 ```rust
-use dh::{self, Writable};
+use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_w("data.txt").unwrap();
@@ -67,7 +67,7 @@ fn main() {
 ### Open a file in read/write mode
 
 ```rust
-use dh::{self, Readable, Writable, Rw};
+use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_rw("data.txt").unwrap();
@@ -84,7 +84,7 @@ fn main() {
 ##### Immutable borrowing
 
 ```rust
-use dh::{self, Readable};
+use dh::recommended::*;
 
 fn main() {
     let mut data = vec![31u8; 1];
@@ -96,7 +96,7 @@ fn main() {
 ##### Mutable borrowing
 
 ```rust
-use dh::{self, Readable, Writable, Rw};
+use dh::recommended::*;
 
 fn main() {
     let mut data = vec![0u8; 1];
@@ -110,7 +110,7 @@ fn main() {
 #### Alternative: moving
 
 ```rust
-use dh::{self, Readable, Writable, Rw};
+use dh::recommended::*;
 
 fn main() {
     let data = vec![0u8; 1];
