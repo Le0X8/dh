@@ -1,4 +1,4 @@
-use crate::{DataType, Readable, Rw, Writable};
+use crate::{DataType, Readable, Rw, Seekable, Writable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 
 mod r#ref;
@@ -49,8 +49,10 @@ impl Seek for RData {
     }
 }
 
+impl Seekable for RData {}
+
 impl<'a> Readable<'a> for RData {
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 
@@ -117,13 +119,15 @@ impl Seek for WData {
     }
 }
 
+impl Seekable for WData {}
+
 impl<'a> Writable<'a> for WData {
     fn alloc(&mut self, len: u64) -> Result<()> {
         self.data.resize(len as usize, 0);
         Ok(())
     }
 
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 
@@ -210,8 +214,10 @@ impl Seek for RwData {
     }
 }
 
+impl Seekable for RwData {}
+
 impl<'a> Readable<'a> for RwData {
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 
@@ -230,7 +236,7 @@ impl<'a> Writable<'a> for RwData {
         Ok(())
     }
 
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 

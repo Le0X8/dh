@@ -1,4 +1,4 @@
-use crate::{DataType, Readable, Rw, Writable};
+use crate::{DataType, Readable, Rw, Seekable, Writable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 
 /// A [`Vec<u8>`] reference reader.
@@ -43,8 +43,10 @@ impl Seek for RRefData<'_> {
     }
 }
 
+impl Seekable for RRefData<'_> {}
+
 impl<'a> Readable<'a> for RRefData<'a> {
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 
@@ -103,6 +105,8 @@ impl Seek for WRefData<'_> {
     }
 }
 
+impl Seekable for WRefData<'_> {}
+
 impl<'a> Writable<'a> for WRefData<'a> {
     fn alloc(&mut self, len: u64) -> Result<()> {
         let data_len = self.data.len();
@@ -112,7 +116,7 @@ impl<'a> Writable<'a> for WRefData<'a> {
         Ok(())
     }
 
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 
@@ -188,8 +192,10 @@ impl Seek for RwRefData<'_> {
     }
 }
 
+impl Seekable for RwRefData<'_> {}
+
 impl<'a> Readable<'a> for RwRefData<'a> {
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 
@@ -211,7 +217,7 @@ impl<'a> Writable<'a> for RwRefData<'a> {
         Ok(())
     }
 
-    fn lock(&mut self) -> Result<()> {
+    fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
 

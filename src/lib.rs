@@ -53,7 +53,8 @@ pub mod file;
 /// Imports all the traits and the crate itself.
 ///
 /// This is the recommended way to import the crate.
-/// [`import`] and [`recommended`] are aliases for this module.
+/// [`import`], [`recommended`], [`essentials`],
+/// [`common`] and [`core`] are aliases for this module.
 ///
 /// ```rust
 /// use dh::prelude::*;
@@ -62,9 +63,13 @@ pub mod prelude;
 
 pub use prelude as import;
 pub use prelude as recommended;
+pub use prelude as essentials;
+pub use prelude as common;
+pub use prelude as core;
 
 mod read;
 mod rw;
+mod seek;
 mod r#type;
 mod write;
 
@@ -73,4 +78,5 @@ pub use prelude::*;
 pub use r#type::*;
 pub use read::*;
 pub use rw::*;
+pub use seek::*;
 pub use write::*;

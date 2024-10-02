@@ -112,7 +112,7 @@ fn rw000() {
     let mut rw = data::rw_new(2);
 
     rw.write_u16be(0x1234).unwrap();
-    rw.rw_rewind().unwrap();
+    rw.rewind().unwrap();
     assert_eq!(rw.read_u16be().unwrap(), 0x1234);
 
     let data = data::close(rw).unwrap();

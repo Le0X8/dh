@@ -1,7 +1,7 @@
-use crate::{DataType, Writable};
+use crate::{DataType, Seekable, Writable};
 use std::{
     cmp::min,
-    io::{ErrorKind, Read, Result, Seek},
+    io::{ErrorKind, Read, Result},
     vec,
 };
 
@@ -49,46 +49,49 @@ fn parse_vuxr(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(
 }
 
 /// Provides methods to read data from a source.
-pub trait Readable<'a>
-where
-    Self: Read + Seek,
-{
+pub trait Readable<'a>: Read + Seekable {
     /// Locks the source exclusively for the current process.
-    fn lock(&mut self) -> Result<()>;
+    /// This only has an effect on some sources, like files.
+    ///
+    /// ### Example
+    ///
+    /// ```should_panic
+    /// use dh::recommended::*;
+    ///
+    /// let mut file1 = dh::file::open_r("tests/samples/000").unwrap();
+    /// file1.lock(true).unwrap(); // this would block the thread until the file is unlocked
+    ///
+    /// let mut file2 = dh::file::open_r("tests/samples/000").unwrap();
+    /// file2.lock(false).unwrap(); // fails, because the file is already locked
+    /// ```
+    fn lock(&mut self, block: bool) -> Result<()>;
 
     /// Unlocks the source for other processes.
+    /// This happens automatically when the source goes out of scope, is closed or dropped.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut file = dh::file::open_r("tests/samples/000").unwrap();
+    /// file.lock(true).unwrap();
+    /// // do something with the file
+    /// file.unlock().unwrap();
+    /// ```
     fn unlock(&mut self) -> Result<()>;
 
     /// Closes the reader and can return the source if it was moved or references it.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![]);
+    /// // do something with the reader
+    /// reader.close().unwrap(); // if the reader goes out of scope, this happens automatically
     fn close(self) -> Result<Option<DataType<'a>>>;
-
-    /// Sets the stream position to the beginning.
-    fn rewind(&mut self) -> Result<u64> {
-        self.seek(std::io::SeekFrom::Start(0))
-    }
-
-    /// Sets the stream position to the end. It is not recommended to read anything after this because it would result in an EOF error.
-    fn end(&mut self) -> Result<u64> {
-        self.seek(std::io::SeekFrom::End(0))
-    }
-
-    /// Sets the stream position to a specific position.
-    fn to(&mut self, pos: u64) -> Result<u64> {
-        self.seek(std::io::SeekFrom::Start(pos))
-    }
-
-    /// Jumps a specific amount of bytes from the current position.
-    fn jump(&mut self, pos: i64) -> Result<u64> {
-        self.seek(std::io::SeekFrom::Current(pos))
-    }
-
-    /// Calculates the current size of the source.
-    fn size(&mut self) -> Result<u64> {
-        let pos_before = self.stream_position()?;
-        let size = self.end();
-        self.to(pos_before)?;
-        size
-    }
 
     /// Copies data from the current position to a target at a specific position.
     ///
@@ -126,6 +129,8 @@ where
     }
 
     /// Reads a byte vector at a specific position.
+    ///
+    /// This executes the [`read_vec`][Readable::read_vec] method at `pos` and then returns to the original position.
     fn read_vec_at(&mut self, pos: u64, len: u64) -> Result<Vec<u8>> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -135,6 +140,8 @@ where
     }
 
     /// Reads an UTF-8-encoded string at a specific position.
+    ///
+    /// This executes the [`read_utf8`][Readable::read_utf8] method at `pos` and then returns to the original position.
     fn read_utf8_at(&mut self, pos: u64, len: u64) -> Result<String> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -144,6 +151,8 @@ where
     }
 
     /// Reads an unsigned 8-bit integer at a specific position.
+    ///
+    /// This executes the [`read_u8`][Readable::read_u8] method at `pos` and then returns to the original position.
     fn read_u8_at(&mut self, pos: u64) -> Result<u8> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -153,6 +162,8 @@ where
     }
 
     /// Reads an unsigned 16-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u16le`][Readable::read_u16le] method at `pos` and then returns to the original position.
     fn read_u16le_at(&mut self, pos: u64) -> Result<u16> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -162,6 +173,8 @@ where
     }
 
     /// Reads an unsigned 16-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u16be`][Readable::read_u16be] method at `pos` and then returns to the original position.
     fn read_u16be_at(&mut self, pos: u64) -> Result<u16> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -171,6 +184,8 @@ where
     }
 
     /// Reads an unsigned 32-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u32le`][Readable::read_u32le] method at `pos` and then returns to the original position.
     fn read_u32le_at(&mut self, pos: u64) -> Result<u32> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -180,6 +195,8 @@ where
     }
 
     /// Reads an unsigned 32-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u32be`][Readable::read_u32be] method at `pos` and then returns to the original position.
     fn read_u32be_at(&mut self, pos: u64) -> Result<u32> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -189,6 +206,8 @@ where
     }
 
     /// Reads an unsigned 64-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u64le`][Readable::read_u64le] method at `pos` and then returns to the original position.
     fn read_u64le_at(&mut self, pos: u64) -> Result<u64> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -198,6 +217,8 @@ where
     }
 
     /// Reads an unsigned 64-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u64be`][Readable::read_u64be] method at `pos` and then returns to the original position.
     fn read_u64be_at(&mut self, pos: u64) -> Result<u64> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -207,6 +228,8 @@ where
     }
 
     /// Reads an unsigned 128-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u128le`][Readable::read_u128le] method at `pos` and then returns to the original position.
     fn read_u128le_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -216,6 +239,8 @@ where
     }
 
     /// Reads an unsigned 128-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_u128be`][Readable::read_u128be] method at `pos` and then returns to the original position.
     fn read_u128be_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -225,6 +250,8 @@ where
     }
 
     /// Reads an unsigned 7-bit variable-length integer at a specific position.
+    ///
+    /// This executes the [`read_vu7`][Readable::read_vu7] method at `pos` and then returns to the original position.
     fn read_vu7_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -234,6 +261,8 @@ where
     }
 
     /// Reads an unsigned 7-bit variable-length integer in reversed byte order at a specific position.
+    ///
+    /// This executes the [`read_vu7r`][Readable::read_vu7r] method at `pos` and then returns to the original position.
     fn read_vu7r_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -243,6 +272,8 @@ where
     }
 
     /// Reads an unsigned 15-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu15le`][Readable::read_vu15le] method at `pos` and then returns to the original position.
     fn read_vu15le_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -252,6 +283,8 @@ where
     }
 
     /// Reads an unsigned 15-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu15be`][Readable::read_vu15be] method at `pos` and then returns to the original position.
     fn read_vu15be_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -261,6 +294,8 @@ where
     }
 
     /// Reads an unsigned 15-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu15ler`][Readable::read_vu15ler] method at `pos` and then returns to the original position.
     fn read_vu15ler_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -270,6 +305,8 @@ where
     }
 
     /// Reads an unsigned 15-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu15ber`][Readable::read_vu15ber] method at `pos` and then returns to the original position.
     fn read_vu15ber_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -279,6 +316,8 @@ where
     }
 
     /// Reads an unsigned 31-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu31le`][Readable::read_vu31le] method at `pos` and then returns to the original position.
     fn read_vu31le_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -288,6 +327,8 @@ where
     }
 
     /// Reads an unsigned 31-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu31be`][Readable::read_vu31be] method at `pos` and then returns to the original position.
     fn read_vu31be_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -297,6 +338,8 @@ where
     }
 
     /// Reads an unsigned 31-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu31ler`][Readable::read_vu31ler] method at `pos` and then returns to the original position.
     fn read_vu31ler_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -306,6 +349,8 @@ where
     }
 
     /// Reads an unsigned 31-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu31ber`][Readable::read_vu31ber] method at `pos` and then returns to the original position.
     fn read_vu31ber_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -315,6 +360,8 @@ where
     }
 
     /// Reads an unsigned 63-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu63le`][Readable::read_vu63le] method at `pos` and then returns to the original position.
     fn read_vu63le_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -324,6 +371,8 @@ where
     }
 
     /// Reads an unsigned 63-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu63be`][Readable::read_vu63be] method at `pos` and then returns to the original position.
     fn read_vu63be_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -333,6 +382,8 @@ where
     }
 
     /// Reads an unsigned 63-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu63ler`][Readable::read_vu63ler] method at `pos` and then returns to the original position.
     fn read_vu63ler_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -342,6 +393,8 @@ where
     }
 
     /// Reads an unsigned 63-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu63ber`][Readable::read_vu63ber] method at `pos` and then returns to the original position.
     fn read_vu63ber_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -351,6 +404,8 @@ where
     }
 
     /// Reads an unsigned 127-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu127le`][Readable::read_vu127le] method at `pos` and then returns to the original position.
     fn read_vu127le_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -360,6 +415,8 @@ where
     }
 
     /// Reads an unsigned 127-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu127be`][Readable::read_vu127be] method at `pos` and then returns to the original position.
     fn read_vu127be_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -369,6 +426,8 @@ where
     }
 
     /// Reads an unsigned 127-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu127ler`][Readable::read_vu127ler] method at `pos` and then returns to the original position.
     fn read_vu127ler_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -378,6 +437,8 @@ where
     }
 
     /// Reads an unsigned 127-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vu127ber`][Readable::read_vu127ber] method at `pos` and then returns to the original position.
     fn read_vu127ber_at(&mut self, pos: u64) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -387,6 +448,8 @@ where
     }
 
     /// Reads an unsigned integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_uxle`][Readable::read_uxle] method at `pos` and then returns to the original position.
     fn read_uxle_at(&mut self, pos: u64, size: u8) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -396,6 +459,8 @@ where
     }
 
     /// Reads an unsigned integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_uxbe`][Readable::read_uxbe] method at `pos` and then returns to the original position.
     fn read_uxbe_at(&mut self, pos: u64, size: u8) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -405,6 +470,8 @@ where
     }
 
     /// Reads an unsigned variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vuxle`][Readable::read_vuxle] method at `pos` and then returns to the original position.
     fn read_vuxle_at(&mut self, pos: u64, size: u8) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -414,6 +481,8 @@ where
     }
 
     /// Reads an unsigned variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vuxbe`][Readable::read_vuxbe] method at `pos` and then returns to the original position.
     fn read_vuxbe_at(&mut self, pos: u64, size: u8) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -423,6 +492,8 @@ where
     }
 
     /// Reads an unsigned variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vuxler`][Readable::read_vuxler] method at `pos` and then returns to the original position.
     fn read_vuxler_at(&mut self, pos: u64, size: u8) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -432,6 +503,8 @@ where
     }
 
     /// Reads an unsigned variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vuxber`][Readable::read_vuxber] method at `pos` and then returns to the original position.
     fn read_vuxber_at(&mut self, pos: u64, size: u8) -> Result<u128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -441,6 +514,8 @@ where
     }
 
     /// Reads a signed 8-bit integer at a specific position.
+    ///
+    /// This executes the [`read_i8`][Readable::read_i8] method at `pos` and then returns to the original position.
     fn read_i8_at(&mut self, pos: u64) -> Result<i8> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -450,6 +525,8 @@ where
     }
 
     /// Reads a signed 16-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i16le`][Readable::read_i16le] method at `pos` and then returns to the original position.
     fn read_i16le_at(&mut self, pos: u64) -> Result<i16> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -459,6 +536,8 @@ where
     }
 
     /// Reads a signed 16-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i16be`][Readable::read_i16be] method at `pos` and then returns to the original position.
     fn read_i16be_at(&mut self, pos: u64) -> Result<i16> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -468,6 +547,8 @@ where
     }
 
     /// Reads a signed 32-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i32le`][Readable::read_i32le] method at `pos` and then returns to the original position.
     fn read_i32le_at(&mut self, pos: u64) -> Result<i32> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -477,6 +558,8 @@ where
     }
 
     /// Reads a signed 32-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i32be`][Readable::read_i32be] method at `pos` and then returns to the original position.
     fn read_i32be_at(&mut self, pos: u64) -> Result<i32> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -486,6 +569,8 @@ where
     }
 
     /// Reads a signed 64-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i64le`][Readable::read_i64le] method at `pos` and then returns to the original position.
     fn read_i64le_at(&mut self, pos: u64) -> Result<i64> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -495,6 +580,8 @@ where
     }
 
     /// Reads a signed 64-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i64be`][Readable::read_i64be] method at `pos` and then returns to the original position.
     fn read_i64be_at(&mut self, pos: u64) -> Result<i64> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -504,6 +591,8 @@ where
     }
 
     /// Reads a signed 128-bit integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i128le`][Readable::read_i128le] method at `pos` and then returns to the original position.
     fn read_i128le_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -513,6 +602,8 @@ where
     }
 
     /// Reads a signed 128-bit integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_i128be`][Readable::read_i128be] method at `pos` and then returns to the original position.
     fn read_i128be_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -522,6 +613,8 @@ where
     }
 
     /// Reads a signed 7-bit variable-length integer at a specific position.
+    ///
+    /// This executes the [`read_vi7`][Readable::read_vi7] method at `pos` and then returns to the original position.
     fn read_vi7_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -531,6 +624,8 @@ where
     }
 
     /// Reads a signed 7-bit variable-length integer in reversed byte order at a specific position.
+    ///
+    /// This executes the [`read_vi7r`][Readable::read_vi7r] method at `pos` and then returns to the original position.
     fn read_vi7r_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -540,6 +635,8 @@ where
     }
 
     /// Reads a signed 15-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi15le`][Readable::read_vi15le] method at `pos` and then returns to the original position.
     fn read_vi15le_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -549,6 +646,8 @@ where
     }
 
     /// Reads a signed 15-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi15be`][Readable::read_vi15be] method at `pos` and then returns to the original position.
     fn read_vi15be_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -558,6 +657,8 @@ where
     }
 
     /// Reads a signed 15-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi15ler`][Readable::read_vi15ler] method at `pos` and then returns to the original position.
     fn read_vi15ler_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -567,6 +668,8 @@ where
     }
 
     /// Reads a signed 15-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi15ber`][Readable::read_vi15ber] method at `pos` and then returns to the original position.
     fn read_vi15ber_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -576,6 +679,8 @@ where
     }
 
     /// Reads a signed 31-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi31le`][Readable::read_vi31le] method at `pos` and then returns to the original position.
     fn read_vi31le_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -585,6 +690,8 @@ where
     }
 
     /// Reads a signed 31-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi31be`][Readable::read_vi31be] method at `pos` and then returns to the original position.
     fn read_vi31be_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -594,6 +701,8 @@ where
     }
 
     /// Reads a signed 31-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi31ler`][Readable::read_vi31ler] method at `pos` and then returns to the original position.
     fn read_vi31ler_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -603,6 +712,8 @@ where
     }
 
     /// Reads a signed 31-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi31ber`][Readable::read_vi31ber] method at `pos` and then returns to the original position.
     fn read_vi31ber_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -612,6 +723,8 @@ where
     }
 
     /// Reads a signed 63-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi63le`][Readable::read_vi63le] method at `pos` and then returns to the original position.
     fn read_vi63le_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -621,6 +734,8 @@ where
     }
 
     /// Reads a signed 63-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi63be`][Readable::read_vi63be] method at `pos` and then returns to the original position.
     fn read_vi63be_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -630,6 +745,8 @@ where
     }
 
     /// Reads a signed 63-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi63ler`][Readable::read_vi63ler] method at `pos` and then returns to the original position.
     fn read_vi63ler_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -639,6 +756,8 @@ where
     }
 
     /// Reads a signed 63-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi63ber`][Readable::read_vi63ber] method at `pos` and then returns to the original position.
     fn read_vi63ber_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -648,6 +767,8 @@ where
     }
 
     /// Reads a signed 127-bit variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi127le`][Readable::read_vi127le] method at `pos` and then returns to the original position.
     fn read_vi127le_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -657,6 +778,8 @@ where
     }
 
     /// Reads a signed 127-bit variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi127be`][Readable::read_vi127be] method at `pos` and then returns to the original position.
     fn read_vi127be_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -666,6 +789,8 @@ where
     }
 
     /// Reads a signed 127-bit variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi127ler`][Readable::read_vi127ler] method at `pos` and then returns to the original position.
     fn read_vi127ler_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -675,6 +800,8 @@ where
     }
 
     /// Reads a signed 127-bit variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vi127ber`][Readable::read_vi127ber] method at `pos` and then returns to the original position.
     fn read_vi127ber_at(&mut self, pos: u64) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -684,6 +811,8 @@ where
     }
 
     /// Reads a signed integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_ixle`][Readable::read_ixle] method at `pos` and then returns to the original position.
     fn read_ixle_at(&mut self, pos: u64, size: u8) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -693,6 +822,8 @@ where
     }
 
     /// Reads a signed integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_ixbe`][Readable::read_ixbe] method at `pos` and then returns to the original position.
     fn read_ixbe_at(&mut self, pos: u64, size: u8) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -702,6 +833,8 @@ where
     }
 
     /// Reads a signed variable-length integer in little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vixle`][Readable::read_vixle] method at `pos` and then returns to the original position.
     fn read_vixle_at(&mut self, pos: u64, size: u8) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -711,6 +844,8 @@ where
     }
 
     /// Reads a signed variable-length integer in big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vixbe`][Readable::read_vixbe] method at `pos` and then returns to the original position.
     fn read_vixbe_at(&mut self, pos: u64, size: u8) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -720,6 +855,8 @@ where
     }
 
     /// Reads a signed variable-length integer in reversed little-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vixler`][Readable::read_vixler] method at `pos` and then returns to the original position.
     fn read_vixler_at(&mut self, pos: u64, size: u8) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -729,6 +866,8 @@ where
     }
 
     /// Reads a signed variable-length integer in reversed big-endian byte order at a specific position.
+    ///
+    /// This executes the [`read_vixber`][Readable::read_vixber] method at `pos` and then returns to the original position.
     fn read_vixber_at(&mut self, pos: u64, size: u8) -> Result<i128> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
@@ -738,6 +877,17 @@ where
     }
 
     /// Reads an UTF-8-encoded string at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x48, 0x65, 0x6C, 0x6C, 0x6F]);
+    ///
+    /// let string = reader.read_utf8(5).unwrap();
+    /// assert_eq!(string, "Hello");
+    /// ```
     fn read_utf8(&mut self, length: u64) -> Result<String> {
         let mut buf = vec![0; length as usize];
         self.read_exact(&mut buf)?;
@@ -811,6 +961,18 @@ where
     }
 
     /// Reads a byte vector at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5]);
+    /// reader.jump(2).unwrap();
+    ///
+    /// let bytes = reader.read_vec(3).unwrap();
+    /// assert_eq!(bytes, vec![2, 3, 4]);
+    /// ```
     fn read_vec(&mut self, length: u64) -> Result<Vec<u8>> {
         let mut buf = vec![0; length as usize];
         self.read_exact(&mut buf)?;
@@ -818,141 +980,379 @@ where
     }
 
     /// Reads an unsigned 8-bit integer at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x48]);
+    ///
+    /// let byte = reader.read_u8().unwrap();
+    /// assert_eq!(byte, 0x48);
+    /// ```
     fn read_u8(&mut self) -> Result<u8> {
         Ok(self.read_uxle(1)? as u8)
     }
 
     /// Reads an unsigned 16-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02]);
+    ///
+    /// let num = reader.read_u16le().unwrap();
+    /// assert_eq!(num, 0x02_01);
+    /// ```
     fn read_u16le(&mut self) -> Result<u16> {
         Ok(self.read_uxle(2)? as u16)
     }
 
     /// Reads an unsigned 16-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02]);
+    ///
+    /// let num = reader.read_u16be().unwrap();
+    /// assert_eq!(num, 0x01_02);
+    /// ```
     fn read_u16be(&mut self) -> Result<u16> {
         Ok(self.read_uxbe(2)? as u16)
     }
 
     /// Reads an unsigned 32-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03, 0x04]);
+    ///
+    /// let num = reader.read_u32le().unwrap();
+    /// assert_eq!(num, 0x04_03_02_01);
+    /// ```
     fn read_u32le(&mut self) -> Result<u32> {
         Ok(self.read_uxle(4)? as u32)
     }
 
     /// Reads an unsigned 32-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03, 0x04]);
+    ///
+    /// let num = reader.read_u32be().unwrap();
+    /// assert_eq!(num, 0x01_02_03_04);
+    /// ```
     fn read_u32be(&mut self) -> Result<u32> {
         Ok(self.read_uxbe(4)? as u32)
     }
 
     /// Reads an unsigned 64-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+    ///
+    /// let num = reader.read_u64le().unwrap();
+    /// assert_eq!(num, 0x08_07_06_05_04_03_02_01);
+    /// ```
     fn read_u64le(&mut self) -> Result<u64> {
         Ok(self.read_uxle(8)? as u64)
     }
 
     /// Reads an unsigned 64-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+    ///
+    /// let num = reader.read_u64be().unwrap();
+    /// assert_eq!(num, 0x01_02_03_04_05_06_07_08);
+    /// ```
     fn read_u64be(&mut self) -> Result<u64> {
         Ok(self.read_uxbe(8)? as u64)
     }
 
     /// Reads an unsigned 128-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10]);
+    ///
+    /// let num = reader.read_u128le().unwrap();
+    ///
+    /// assert_eq!(num, 0x10_0f_0e_0d_0c_0b_0a_09_08_07_06_05_04_03_02_01);
+    /// ```
     fn read_u128le(&mut self) -> Result<u128> {
         self.read_uxle(16)
     }
 
     /// Reads an unsigned 128-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10]);
+    ///
+    /// let num = reader.read_u128be().unwrap();
+    ///
+    /// assert_eq!(num, 0x01_02_03_04_05_06_07_08_09_0a_0b_0c_0d_0e_0f_10);
+    /// ```
     fn read_u128be(&mut self) -> Result<u128> {
         self.read_uxbe(16)
     }
 
     /// Reads an unsigned 7-bit variable-length integer at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vu7().unwrap();
+    /// assert_eq!(num, 0b1000001_0010000);
+    /// ```
     fn read_vu7(&mut self) -> Result<u128> {
         self.read_vuxle(1)
     }
 
     /// Reads an unsigned 7-bit variable-length integer in reversed byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vu7r().unwrap();
+    /// assert_eq!(num, 0b0010000_1000001);
+    /// ```
     fn read_vu7r(&mut self) -> Result<u128> {
         self.read_vuxler(1)
     }
 
     /// Reads an unsigned 15-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10101010, 0b11000001, 0b10101010, 0b01000001]);
+    ///
+    /// let num = reader.read_vu15le().unwrap();
+    /// assert_eq!(num, 0b100000110101010_100000110101010);
+    /// ```
     fn read_vu15le(&mut self) -> Result<u128> {
         self.read_vuxle(2)
     }
 
     /// Reads an unsigned 15-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b11000001, 0b10101010, 0b01000001, 0b10101010]);
+    ///
+    /// let num = reader.read_vu15be().unwrap();
+    /// assert_eq!(num, 0b100000110101010_100000110101010);
+    /// ```
     fn read_vu15be(&mut self) -> Result<u128> {
         self.read_vuxbe(2)
     }
 
     /// Reads an unsigned 15-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10101010, 0b11001001, 0b10101010, 0b01000001]);
+    ///
+    /// let num = reader.read_vu15ler().unwrap();
+    /// assert_eq!(num, 0b100100110101010_100000110101010);
+    /// ```
     fn read_vu15ler(&mut self) -> Result<u128> {
         self.read_vuxler(2)
     }
 
     /// Reads an unsigned 15-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b11001001, 0b10101010, 0b01000001, 0b10101010]);
+    ///
+    /// let num = reader.read_vu15ber().unwrap();
+    /// assert_eq!(num, 0b100100110101010_100000110101010);
+    /// ```
     fn read_vu15ber(&mut self) -> Result<u128> {
         self.read_vuxber(2)
     }
 
     /// Reads an unsigned 31-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10101010, 0b10000001, 0b10101010, 0b11000001, 0b10101010, 0b10000001, 0b10101010, 0b01000001]);
+    ///
+    /// let num = reader.read_vu31le().unwrap();
+    /// assert_eq!(num, 0b1000001101010101000000110101010_1000001101010101000000110101010);
+    /// ```
     fn read_vu31le(&mut self) -> Result<u128> {
         self.read_vuxle(4)
     }
 
     /// Reads an unsigned 31-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b11000001, 0b10101010, 0b10000001, 0b10101010, 0b01000001, 0b10101010, 0b10000001, 0b10101010]);
+    ///
+    /// let num = reader.read_vu31be().unwrap();
+    /// assert_eq!(num, 0b1000001101010101000000110101010_1000001101010101000000110101010);
+    /// ```
     fn read_vu31be(&mut self) -> Result<u128> {
         self.read_vuxbe(4)
     }
 
     /// Reads an unsigned 31-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10101010, 0b10000001, 0b10101010, 0b11000001, 0b10101010, 0b10000001, 0b10101010, 0b01000001]);
+    ///
+    /// let num = reader.read_vu31ler().unwrap();
+    /// assert_eq!(num, 0b1000001101010101000000110101010_1000001101010101000000110101010);
+    /// ```
     fn read_vu31ler(&mut self) -> Result<u128> {
         self.read_vuxler(4)
     }
 
     /// Reads an unsigned 31-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b11000001, 0b10101010, 0b10000001, 0b10101010, 0b01000001, 0b10101010, 0b10000001, 0b10101010]);
+    ///
+    /// let num = reader.read_vu31ber().unwrap();
+    /// assert_eq!(num, 0b1000001101010101000000110101010_1000001101010101000000110101010);
+    /// ```
     fn read_vu31ber(&mut self) -> Result<u128> {
         self.read_vuxber(4)
     }
 
     /// Reads an unsigned 63-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31le`][Readable::read_vu31le] but with 63 bits.
     fn read_vu63le(&mut self) -> Result<u128> {
         self.read_vuxle(8)
     }
 
     /// Reads an unsigned 63-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31be`][Readable::read_vu31be] but with 63 bits.
     fn read_vu63be(&mut self) -> Result<u128> {
         self.read_vuxbe(8)
     }
 
     /// Reads an unsigned 63-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31ler`][Readable::read_vu31ler] but with 63 bits.
     fn read_vu63ler(&mut self) -> Result<u128> {
         self.read_vuxler(8)
     }
 
     /// Reads an unsigned 63-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31ber`][Readable::read_vu31ber] but with 63 bits.
     fn read_vu63ber(&mut self) -> Result<u128> {
         self.read_vuxber(8)
     }
 
     /// Reads an unsigned 127-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31le`][Readable::read_vu31le] but with 127 bits.
     fn read_vu127le(&mut self) -> Result<u128> {
         self.read_vuxle(16)
     }
 
     /// Reads an unsigned 127-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31be`][Readable::read_vu31be] but with 127 bits.
     fn read_vu127be(&mut self) -> Result<u128> {
         self.read_vuxbe(16)
     }
 
     /// Reads an unsigned 127-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31ler`][Readable::read_vu31ler] but with 127 bits.
     fn read_vu127ler(&mut self) -> Result<u128> {
         self.read_vuxler(16)
     }
 
     /// Reads an unsigned 127-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31ber`][Readable::read_vu31ber] but with 127 bits.
     fn read_vu127ber(&mut self) -> Result<u128> {
         self.read_vuxber(16)
     }
 
     /// Reads an unsigned integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03]);
+    ///
+    /// let num = reader.read_uxle(3).unwrap();
+    /// assert_eq!(num, 0x03_02_01);
+    /// ```
     fn read_uxle(&mut self, size: u8) -> Result<u128> {
         let mut buffer = [0u8; 16];
         self.read_exact(&mut buffer[0..size as usize])?;
@@ -966,6 +1366,17 @@ where
     }
 
     /// Reads an unsigned integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x01, 0x02, 0x03]);
+    ///
+    /// let num = reader.read_uxbe(3).unwrap();
+    /// assert_eq!(num, 0x01_02_03);
+    /// ```
     fn read_uxbe(&mut self, size: u8) -> Result<u128> {
         let mut buffer = [0u8; 16];
         self.read_exact(&mut buffer[0..size as usize])?;
@@ -979,161 +1390,351 @@ where
     }
 
     /// Reads an unsigned variable-length integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vuxle(1).unwrap();
+    /// assert_eq!(num, 0b1000001_0010000);
+    /// ```
     fn read_vuxle(&mut self, size: u8) -> Result<u128> {
         Ok(parse_vux(&mut |s| self.read_uxle(s), size)?.0)
     }
 
     /// Reads an unsigned variable-length integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vuxbe(1).unwrap();
+    /// assert_eq!(num, 0b1000001_0010000);
+    /// ```
     fn read_vuxbe(&mut self, size: u8) -> Result<u128> {
         Ok(parse_vux(&mut |s| self.read_uxbe(s), size)?.0)
     }
 
     /// Reads an unsigned variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vuxler(1).unwrap();
+    /// assert_eq!(num, 0b0010000_1000001);
+    /// ```
     fn read_vuxler(&mut self, size: u8) -> Result<u128> {
         Ok(parse_vuxr(&mut |s| self.read_uxle(s), size)?.0)
     }
 
     /// Reads an unsigned variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vuxber(1).unwrap();
+    /// assert_eq!(num, 0b0010000_1000001);
+    /// ```
     fn read_vuxber(&mut self, size: u8) -> Result<u128> {
         Ok(parse_vuxr(&mut |s| self.read_uxbe(s), size)?.0)
     }
 
     /// Reads a signed 8-bit integer at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i8::MIN.to_le_bytes().to_vec());
+    ///
+    /// let byte = reader.read_i8().unwrap();
+    /// assert_eq!(byte, i8::MIN);
+    /// ```
     fn read_i8(&mut self) -> Result<i8> {
         Ok(self.read_ixle(1)? as i8)
     }
 
     /// Reads a signed 16-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i16::MIN.to_le_bytes().to_vec());
+    ///
+    /// let num = reader.read_i16le().unwrap();
+    /// assert_eq!(num, i16::MIN);
+    /// ```
     fn read_i16le(&mut self) -> Result<i16> {
         Ok(self.read_ixle(2)? as i16)
     }
 
-    /// Reads a signed 16-bit integer in big-endian byte order at the current position.        
+    /// Reads a signed 16-bit integer in big-endian byte order at the current position.  
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i16::MIN.to_be_bytes().to_vec());
+    ///
+    /// let num = reader.read_i16be().unwrap();
+    /// assert_eq!(num, i16::MIN);
+    /// ```      
     fn read_i16be(&mut self) -> Result<i16> {
         Ok(self.read_ixbe(2)? as i16)
     }
 
     /// Reads a signed 32-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i32::MIN.to_le_bytes().to_vec());
+    ///
+    /// let num = reader.read_i32le().unwrap();
+    /// assert_eq!(num, i32::MIN);
+    /// ```
     fn read_i32le(&mut self) -> Result<i32> {
         Ok(self.read_ixle(4)? as i32)
     }
 
     /// Reads a signed 32-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i32::MIN.to_be_bytes().to_vec());
+    ///
+    /// let num = reader.read_i32be().unwrap();
+    /// assert_eq!(num, i32::MIN);
+    /// ```
     fn read_i32be(&mut self) -> Result<i32> {
         Ok(self.read_ixbe(4)? as i32)
     }
 
     /// Reads a signed 64-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i64::MIN.to_le_bytes().to_vec());
+    ///
+    /// let num = reader.read_i64le().unwrap();
+    /// assert_eq!(num, i64::MIN);
+    /// ```
     fn read_i64le(&mut self) -> Result<i64> {
         Ok(self.read_ixle(8)? as i64)
     }
 
     /// Reads a signed 64-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i64::MIN.to_be_bytes().to_vec());
+    ///
+    /// let num = reader.read_i64be().unwrap();
+    /// assert_eq!(num, i64::MIN);
+    /// ```
     fn read_i64be(&mut self) -> Result<i64> {
         Ok(self.read_ixbe(8)? as i64)
     }
 
     /// Reads a signed 128-bit integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i128::MIN.to_le_bytes().to_vec());
+    ///
+    /// let num = reader.read_i128le().unwrap();
+    /// assert_eq!(num, i128::MIN);
+    /// ```
     fn read_i128le(&mut self) -> Result<i128> {
         self.read_ixle(16)
     }
 
     /// Reads a signed 128-bit integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i128::MIN.to_be_bytes().to_vec());
+    ///
+    /// let num = reader.read_i128be().unwrap();
+    /// assert_eq!(num, i128::MIN);
+    /// ```
     fn read_i128be(&mut self) -> Result<i128> {
         self.read_ixbe(16)
     }
 
     /// Reads a signed 7-bit variable-length integer at the current position.
+    ///
+    /// This works like [`read_vu7`][Readable::read_vu7] but for signed integers.
     fn read_vi7(&mut self) -> Result<i128> {
         self.read_vixle(1)
     }
 
     /// Reads a signed 7-bit variable-length integer in reversed byte order at the current position.
+    ///
+    /// This works like [`read_vu7r`][Readable::read_vu7r] but for signed integers.
     fn read_vi7r(&mut self) -> Result<i128> {
         self.read_vixler(1)
     }
 
     /// Reads a signed 15-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu15le`][Readable::read_vu15le] but for signed integers.
     fn read_vi15le(&mut self) -> Result<i128> {
         self.read_vixle(2)
     }
 
     /// Reads a signed 15-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu15be`][Readable::read_vu15be] but for signed integers.
     fn read_vi15be(&mut self) -> Result<i128> {
         self.read_vixbe(2)
     }
 
     /// Reads a signed 15-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu15ler`][Readable::read_vu15ler] but for signed integers.
     fn read_vi15ler(&mut self) -> Result<i128> {
         self.read_vixler(2)
     }
 
     /// Reads a signed 15-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu15ber`][Readable::read_vu15ber] but for signed integers.
     fn read_vi15ber(&mut self) -> Result<i128> {
         self.read_vixber(2)
     }
 
     /// Reads a signed 31-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31le`][Readable::read_vu31le] but for signed integers.
     fn read_vi31le(&mut self) -> Result<i128> {
         self.read_vixle(4)
     }
 
     /// Reads a signed 31-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31be`][Readable::read_vu31be] but for signed integers.
     fn read_vi31be(&mut self) -> Result<i128> {
         self.read_vixbe(4)
     }
 
     /// Reads a signed 31-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31ler`][Readable::read_vu31ler] but for signed integers.
     fn read_vi31ler(&mut self) -> Result<i128> {
         self.read_vixler(4)
     }
 
     /// Reads a signed 31-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu31ber`][Readable::read_vu31ber] but for signed integers.
     fn read_vi31ber(&mut self) -> Result<i128> {
         self.read_vixber(4)
     }
 
     /// Reads a signed 63-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu63le`][Readable::read_vu63le] but for signed integers.
     fn read_vi63le(&mut self) -> Result<i128> {
         self.read_vixle(8)
     }
 
     /// Reads a signed 63-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu63be`][Readable::read_vu63be] but for signed integers.
     fn read_vi63be(&mut self) -> Result<i128> {
         self.read_vixbe(8)
     }
 
     /// Reads a signed 63-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu63ler`][Readable::read_vu63ler] but for signed integers.
     fn read_vi63ler(&mut self) -> Result<i128> {
         self.read_vixler(8)
     }
 
     /// Reads a signed 63-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu63ber`][Readable::read_vu63ber] but for signed integers.
     fn read_vi63ber(&mut self) -> Result<i128> {
         self.read_vixber(8)
     }
 
     /// Reads a signed 127-bit variable-length integer in little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu127le`][Readable::read_vu127le] but for signed integers.
     fn read_vi127le(&mut self) -> Result<i128> {
         self.read_vixle(16)
     }
 
     /// Reads a signed 127-bit variable-length integer in big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu127be`][Readable::read_vu127be] but for signed integers.
     fn read_vi127be(&mut self) -> Result<i128> {
         self.read_vixbe(16)
     }
 
     /// Reads a signed 127-bit variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu127ler`][Readable::read_vu127ler] but for signed integers.
     fn read_vi127ler(&mut self) -> Result<i128> {
         self.read_vixler(16)
     }
 
     /// Reads a signed 127-bit variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// This works like [`read_vu127ber`][Readable::read_vu127ber] but for signed integers.
     fn read_vi127ber(&mut self) -> Result<i128> {
         self.read_vixber(16)
     }
 
     /// Reads a signed integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i8::MIN.to_le_bytes().to_vec());
+    ///
+    /// let byte = reader.read_ixle(1).unwrap() as i8;
+    /// assert_eq!(byte, i8::MIN);
+    /// ```
     fn read_ixle(&mut self, size: u8) -> Result<i128> {
         let mut buffer = [0u8; 16];
         self.read_exact(&mut buffer[0..size as usize])?;
@@ -1147,6 +1748,17 @@ where
     }
 
     /// Reads a signed integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(i8::MIN.to_be_bytes().to_vec());
+    ///
+    /// let byte = reader.read_ixbe(1).unwrap() as i8;
+    /// assert_eq!(byte, i8::MIN);
+    /// ```
     fn read_ixbe(&mut self, size: u8) -> Result<i128> {
         let mut buffer = [0u8; 16];
         self.read_exact(&mut buffer[0..size as usize])?;
@@ -1160,6 +1772,17 @@ where
     }
 
     /// Reads a signed variable-length integer in little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vixle(1).unwrap();
+    /// assert_eq!(num, -0b0000001_0010000);
+    /// ```
     fn read_vixle(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxle(s);
         let result = parse_vux(&mut fun, size)?;
@@ -1180,6 +1803,17 @@ where
     }
 
     /// Reads a signed variable-length integer in big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vixbe(1).unwrap();
+    /// assert_eq!(num, -0b0000001_0010000);
+    /// ```
     fn read_vixbe(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxbe(s);
         let result = parse_vux(&mut fun, size)?;
@@ -1200,6 +1834,17 @@ where
     }
 
     /// Reads a signed variable-length integer in reversed little-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vixler(1).unwrap();
+    /// assert_eq!(num, 0b0010000_1000001);
+    /// ```
     fn read_vixler(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxle(s);
         let result = parse_vuxr(&mut fun, size)?;
@@ -1220,6 +1865,17 @@ where
     }
 
     /// Reads a signed variable-length integer in reversed big-endian byte order at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    ///
+    /// let num = reader.read_vixber(1).unwrap();
+    /// assert_eq!(num, 0b0010000_1000001);
+    /// ```
     fn read_vixber(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxbe(s);
         let result = parse_vuxr(&mut fun, size)?;

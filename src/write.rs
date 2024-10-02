@@ -1,6 +1,6 @@
-use std::io::{Result, Seek, Write};
+use std::io::{Result, Write};
 
-use crate::DataType;
+use crate::{DataType, Seekable};
 
 fn signed_to_unsigned(num: i128) -> u128 {
     u128::from_ne_bytes(num.to_ne_bytes()) // there might be a better way to do this but this worked instantly so I leave it this way
@@ -40,47 +40,19 @@ fn serialize_vuxle(size: u8, num: u128, be: bool, rev: bool) -> Vec<u8> {
 /// Provides methods to write data to a target.
 pub trait Writable<'a>
 where
-    Self: Write + Seek,
+    Self: Write + Seekable,
 {
     /// Pre-allocates space in the data stream.
     fn alloc(&mut self, len: u64) -> Result<()>;
 
     /// Locks the source exclusively for the current process.
-    fn lock(&mut self) -> Result<()>;
+    fn lock(&mut self, block: bool) -> Result<()>;
 
     /// Unlocks the source for other processes.
     fn unlock(&mut self) -> Result<()>;
 
     /// Closes the writer and can return the target if it was moved or references it.
     fn close(self) -> Result<Option<DataType<'a>>>;
-
-    /// Sets the stream position to the beginning.
-    fn rewind(&mut self) -> Result<u64> {
-        self.seek(std::io::SeekFrom::Start(0))
-    }
-
-    /// Sets the stream position to the end. Writing anything here can cause EOF errors if the target size is fixed.
-    fn end(&mut self) -> Result<u64> {
-        self.seek(std::io::SeekFrom::End(0))
-    }
-
-    /// Sets the stream position to a specific position.
-    fn to(&mut self, pos: u64) -> Result<u64> {
-        self.seek(std::io::SeekFrom::Start(pos))
-    }
-
-    /// Jumps a specific amount of bytes from the current position.
-    fn jump(&mut self, pos: i64) -> Result<u64> {
-        self.seek(std::io::SeekFrom::Current(pos))
-    }
-
-    /// Calculates the current size of the target. The size may increase after writing data.
-    fn size(&mut self) -> Result<u64> {
-        let pos_before = self.stream_position()?;
-        let size = self.end();
-        self.to(pos_before)?;
-        size
-    }
 
     /// Writes an UTF-8-encoded string at a specific position.
     fn write_utf8_at(&mut self, pos: u64, s: &String) -> Result<()> {

@@ -1,4 +1,4 @@
-use crate::{DataType, Readable, Rw, Writable};
+use crate::{DataType, Readable, Rw, Seekable, Writable};
 use fs4::fs_std::FileExt;
 use std::{
     fs::{File, OpenOptions},
@@ -23,9 +23,22 @@ impl Seek for RFile {
     }
 }
 
+impl Drop for RFile {
+    fn drop(&mut self) {
+        self.file.unlock().unwrap();
+        self.file.sync_all().unwrap();
+    }
+}
+
+impl Seekable for RFile {}
+
 impl<'a> Readable<'a> for RFile {
-    fn lock(&mut self) -> Result<()> {
-        self.file.lock_exclusive()
+    fn lock(&mut self, block: bool) -> Result<()> {
+        if block {
+            self.file.lock_exclusive()
+        } else {
+            self.file.try_lock_exclusive()
+        }
     }
 
     fn unlock(&mut self) -> Result<()> {
@@ -73,6 +86,15 @@ impl Seek for WFile {
     }
 }
 
+impl Drop for WFile {
+    fn drop(&mut self) {
+        self.file.unlock().unwrap();
+        self.file.sync_all().unwrap();
+    }
+}
+
+impl Seekable for WFile {}
+
 impl<'a> Writable<'a> for WFile {
     fn alloc(&mut self, len: u64) -> Result<()> {
         match self.file.allocate(len) {
@@ -84,8 +106,12 @@ impl<'a> Writable<'a> for WFile {
         }
     }
 
-    fn lock(&mut self) -> Result<()> {
-        self.file.lock_exclusive()
+    fn lock(&mut self, block: bool) -> Result<()> {
+        if block {
+            self.file.lock_exclusive()
+        } else {
+            self.file.try_lock_exclusive()
+        }
     }
 
     fn unlock(&mut self) -> Result<()> {
@@ -138,9 +164,22 @@ impl Seek for RwFile {
     }
 }
 
+impl Drop for RwFile {
+    fn drop(&mut self) {
+        self.file.unlock().unwrap();
+        self.file.sync_all().unwrap();
+    }
+}
+
+impl Seekable for RwFile {}
+
 impl<'a> Readable<'a> for RwFile {
-    fn lock(&mut self) -> Result<()> {
-        self.file.lock_exclusive()
+    fn lock(&mut self, block: bool) -> Result<()> {
+        if block {
+            self.file.lock_exclusive()
+        } else {
+            self.file.try_lock_exclusive()
+        }
     }
 
     fn unlock(&mut self) -> Result<()> {
@@ -165,8 +204,12 @@ impl<'a> Writable<'a> for RwFile {
         }
     }
 
-    fn lock(&mut self) -> Result<()> {
-        self.file.lock_exclusive()
+    fn lock(&mut self, block: bool) -> Result<()> {
+        if block {
+            self.file.lock_exclusive()
+        } else {
+            self.file.try_lock_exclusive()
+        }
     }
 
     fn unlock(&mut self) -> Result<()> {
