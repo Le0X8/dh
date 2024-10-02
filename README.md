@@ -1,7 +1,8 @@
 <p align="center">
     <a href="https://crates.io/crates/dh"><img alt="Crates.io Version" src="https://img.shields.io/crates/v/dh?style=for-the-badge"></a>
     <a href="https://github.com/Le0X8/dh/issues"><img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/Le0X8/dh?style=for-the-badge"></a>
-    <a href="https://crates.io/crates/dh#user-content-license"><img alt="Crates.io Total Downloads" src="https://img.shields.io/crates/d/dh?style=for-the-badge"></a>
+    <a href="https://github.com/Le0X8/dh/actions/workflows/ci.yml"><img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Le0X8/dh/ci?style=for-the-badge&label=ci"></a>
+    <!-- <a href="https://crates.io/crates/dh#user-content-license"><img alt="Crates.io Total Downloads" src="https://img.shields.io/crates/d/dh?style=for-the-badge"></a> -->
 </p>
 
 <h1 align="center">
