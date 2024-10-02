@@ -38,9 +38,10 @@
 //! // note how the position stays at 0
 //! assert_eq!(rw.read_u64be().unwrap(), 0x0801020304050607); // read a u64 in big-endian
 //!
-//! dh::data::close_ref(rw).unwrap(); // close the R/W object and get the reference back
+//! dh::data::close_ref(rw); // close the R/W object and get the reference back
 //! // you can drop the rw object too if you don't need the reference anymore
-//! // you can get the whole vector back with dh::data::close(rw).unwrap() if it was moved
+//! // you can get the whole vector back with dh::data::close(rw) if it was moved
+//! // you can also get the mutable reference back with dh::data::close_mut(rw)
 //!
 //! assert_eq!(data, vec![8, 1, 2, 3, 4, 5, 6, 7]); // check if the data is correct
 

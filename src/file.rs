@@ -131,7 +131,12 @@ pub fn open_w<P>(path: P) -> Result<WFile>
 where
     P: AsRef<Path>,
 {
-    match File::create(path) {
+    match OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(path)
+    {
         Ok(file) => Ok(WFile { file }),
         Err(e) => Err(e),
     }

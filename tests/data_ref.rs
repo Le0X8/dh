@@ -9,7 +9,7 @@ fn r000() {
     let size = reader.size().unwrap();
     assert_eq!(reader.read_utf8_at(0, size).unwrap(), "Hello, world!");
 
-    assert_eq!(data::close_ref(reader).unwrap(), data_ref);
+    assert_eq!(data::close_ref(reader), data_ref);
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn r001() {
         assert_eq!(reader.read_u16le_at(6).unwrap(), 0x0706);
         assert_eq!(reader.read_u64be().unwrap(), 0x0001020304050607);
 
-        data::close_ref(reader).unwrap()
+        data::close_ref(reader)
     };
     assert_eq!(data2, &data);
 }
@@ -34,7 +34,7 @@ fn w000() {
 
     writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
 
-    data::close_ref(writer).unwrap(); // close_mut would return the mutable reference
+    data::close_ref(writer); // close_mut would return the mutable reference
     assert_eq!(data, "Hello, rust !".as_bytes());
 }
 

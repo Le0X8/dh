@@ -29,6 +29,7 @@
 - Temporary file storage for large data
 - Zero-cost cloning
 - Zero-cost subarray clones
+- Reading and writing of data that does not fill a whole byte
 
 ## Installation
 

@@ -5,6 +5,40 @@ use std::{
     vec,
 };
 
+/// # **This function is only for variable length signed integers, not normal integers!!!**
+fn unsigned_to_signed(num: u128, length: u8, size: u8) -> i128 {
+    let signed_max = (1 << (length * (8 * size - 1) - 1)) - 1;
+
+    if num <= signed_max {
+        println!(
+            "pos size={} len={} unsigned=0x{:x} max=0x{:x}",
+            size, length, num, signed_max
+        );
+        num as i128
+    } else {
+        let signed_min = -(signed_max as i128) - 1;
+        println!(
+            "neg size={} len={} unsigned=0x{:x} max=0x{:x} min=0x{:x}",
+            size, length, num, signed_max, signed_min
+        );
+
+        signed_min + num as i128 + signed_min
+    }
+}
+
+#[test]
+fn test_unsigned_to_signed() {
+    assert_eq!(unsigned_to_signed(0, 1, 1), 0);
+    assert_eq!(unsigned_to_signed(0b0100_0000, 1, 1), -64);
+    assert_eq!(unsigned_to_signed(0b0100_0001, 1, 1), -63);
+    assert_eq!(unsigned_to_signed(0b0011_1111, 1, 1), 63);
+
+    assert_eq!(unsigned_to_signed(0, 2, 1), 0);
+    assert_eq!(unsigned_to_signed(0b0010_0000_0000_0000, 2, 1), -8192);
+    assert_eq!(unsigned_to_signed(0b0010_0000_0000_0001, 2, 1), -8191);
+    assert_eq!(unsigned_to_signed(0b0001_1111_1111_1111, 2, 1), 8191);
+}
+
 fn parse_vux(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(u128, usize)> {
     let mut result = 0;
     let mut shift = 0u8;
@@ -49,6 +83,9 @@ fn parse_vuxr(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(
 }
 
 /// Provides methods to read data from a source.
+///
+/// Although the trait can be implemented for any type that implements [`Read`] and [`Seekable`],
+/// for most cases the [internal implementations](#implementors) are recommended.
 pub trait Readable<'a>: Read + Seekable {
     /// Locks the source exclusively for the current process.
     /// This only has an effect on some sources, like files.
@@ -91,6 +128,7 @@ pub trait Readable<'a>: Read + Seekable {
     /// let mut reader = dh::data::read(vec![]);
     /// // do something with the reader
     /// reader.close().unwrap(); // if the reader goes out of scope, this happens automatically
+    /// ```
     fn close(self) -> Result<Option<DataType<'a>>>;
 
     /// Copies data from the current position to a target at a specific position.
@@ -128,13 +166,13 @@ pub trait Readable<'a>: Read + Seekable {
         result
     }
 
-    /// Reads a byte vector at a specific position.
+    /// Reads bytes at a specific position.
     ///
-    /// This executes the [`read_vec`][Readable::read_vec] method at `pos` and then returns to the original position.
-    fn read_vec_at(&mut self, pos: u64, len: u64) -> Result<Vec<u8>> {
+    /// This executes the [`read_bytes`][Readable::read_bytes] method at `pos` and then returns to the original position.
+    fn read_bytes_at(&mut self, pos: u64, len: u64) -> Result<Vec<u8>> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
-        let result = self.read_vec(len);
+        let result = self.read_bytes(len);
         self.to(pos_before)?;
         result
     }
@@ -876,27 +914,6 @@ pub trait Readable<'a>: Read + Seekable {
         result
     }
 
-    /// Reads an UTF-8-encoded string at the current position.
-    ///
-    /// ### Example
-    ///
-    /// ```rust
-    /// use dh::recommended::*;
-    ///
-    /// let mut reader = dh::data::read(vec![0x48, 0x65, 0x6C, 0x6C, 0x6F]);
-    ///
-    /// let string = reader.read_utf8(5).unwrap();
-    /// assert_eq!(string, "Hello");
-    /// ```
-    fn read_utf8(&mut self, length: u64) -> Result<String> {
-        let mut buf = vec![0; length as usize];
-        self.read_exact(&mut buf)?;
-        Ok(match String::from_utf8(buf) {
-            Ok(str) => str,
-            Err(_) => return Err(ErrorKind::InvalidData.into()),
-        })
-    }
-
     /// Copies data from the current position to a target.
     ///
     /// ### Example
@@ -911,7 +928,7 @@ pub trait Readable<'a>: Read + Seekable {
     /// src.rewind().unwrap();
     /// src.copy(4, &mut target, 1024).unwrap();
     ///
-    /// let data = dh::data::close(target).unwrap();
+    /// let data = dh::data::close(target);
     /// assert_eq!(data, vec![0, 1, 2, 3, 0, 1, 2, 3]);
     /// ```
     fn copy(&mut self, length: u64, target: &mut dyn Writable, buffer_size: u64) -> Result<()> {
@@ -943,7 +960,7 @@ pub trait Readable<'a>: Read + Seekable {
     /// src.jump(1).unwrap();
     /// src.copy_to(2, 4, &mut target, 1024).unwrap();
     ///
-    /// let data = dh::data::close(target).unwrap();
+    /// let data = dh::data::close(target);
     /// assert_eq!(data, vec![0, 0, 1, 2, 3, 4, 0, 0]);
     /// ```
     fn copy_to(
@@ -960,7 +977,7 @@ pub trait Readable<'a>: Read + Seekable {
         result
     }
 
-    /// Reads a byte vector at the current position.
+    /// Reads bytes at the current position.
     ///
     /// ### Example
     ///
@@ -970,13 +987,34 @@ pub trait Readable<'a>: Read + Seekable {
     /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5]);
     /// reader.jump(2).unwrap();
     ///
-    /// let bytes = reader.read_vec(3).unwrap();
+    /// let bytes = reader.read_bytes(3).unwrap();
     /// assert_eq!(bytes, vec![2, 3, 4]);
     /// ```
-    fn read_vec(&mut self, length: u64) -> Result<Vec<u8>> {
+    fn read_bytes(&mut self, length: u64) -> Result<Vec<u8>> {
         let mut buf = vec![0; length as usize];
         self.read_exact(&mut buf)?;
         Ok(buf)
+    }
+
+    /// Reads an UTF-8-encoded string at the current position.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0x48, 0x65, 0x6c, 0x6c, 0x6f]);
+    ///
+    /// let string = reader.read_utf8(5).unwrap();
+    /// assert_eq!(string, "Hello");
+    /// ```
+    fn read_utf8(&mut self, length: u64) -> Result<String> {
+        let mut buf = vec![0; length as usize];
+        self.read_exact(&mut buf)?;
+        Ok(match String::from_utf8(buf) {
+            Ok(str) => str,
+            Err(_) => return Err(ErrorKind::InvalidData.into()),
+        })
     }
 
     /// Reads an unsigned 8-bit integer at the current position.
@@ -1778,10 +1816,10 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```rust
     /// use dh::recommended::*;
     ///
-    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    /// let mut reader = dh::data::read(vec![0b10000000, 0b01000000]);
     ///
     /// let num = reader.read_vixle(1).unwrap();
-    /// assert_eq!(num, -0b0000001_0010000);
+    /// assert_eq!(num, -8192);
     /// ```
     fn read_vixle(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxle(s);
@@ -1789,17 +1827,7 @@ pub trait Readable<'a>: Read + Seekable {
         let unsigned = result.0;
         let length = result.1 as u8;
 
-        let block_len = size * 8 - 1;
-        let bit_len = block_len * length;
-        let negative = unsigned & (1 << (bit_len - 1)) != 0;
-
-        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
-
-        if negative {
-            Ok(-int)
-        } else {
-            Ok(int)
-        }
+        Ok(unsigned_to_signed(unsigned, length, size))
     }
 
     /// Reads a signed variable-length integer in big-endian byte order at the current position.
@@ -1809,10 +1837,10 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```rust
     /// use dh::recommended::*;
     ///
-    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    /// let mut reader = dh::data::read(vec![0b01100000, 0b00000000]);
     ///
-    /// let num = reader.read_vixbe(1).unwrap();
-    /// assert_eq!(num, -0b0000001_0010000);
+    /// let num = reader.read_vixbe(2).unwrap();
+    /// assert_eq!(num, -8192);
     /// ```
     fn read_vixbe(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxbe(s);
@@ -1820,17 +1848,7 @@ pub trait Readable<'a>: Read + Seekable {
         let unsigned = result.0;
         let length = result.1 as u8;
 
-        let block_len = size * 8 - 1;
-        let bit_len = block_len * length;
-        let negative = unsigned & (1 << (bit_len - 1)) != 0;
-
-        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
-
-        if negative {
-            Ok(-int)
-        } else {
-            Ok(int)
-        }
+        Ok(unsigned_to_signed(unsigned, length, size))
     }
 
     /// Reads a signed variable-length integer in reversed little-endian byte order at the current position.
@@ -1840,10 +1858,10 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```rust
     /// use dh::recommended::*;
     ///
-    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    /// let mut reader = dh::data::read(vec![0b00000000, 0b01100000]);
     ///
-    /// let num = reader.read_vixler(1).unwrap();
-    /// assert_eq!(num, 0b0010000_1000001);
+    /// let num = reader.read_vixler(2).unwrap();
+    /// assert_eq!(num, -8192);
     /// ```
     fn read_vixler(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxle(s);
@@ -1851,17 +1869,7 @@ pub trait Readable<'a>: Read + Seekable {
         let unsigned = result.0;
         let length = result.1 as u8;
 
-        let block_len = size * 8 - 1;
-        let bit_len = block_len * length;
-        let negative = unsigned & (1 << (bit_len - 1)) != 0;
-
-        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
-
-        if negative {
-            Ok(-int)
-        } else {
-            Ok(int)
-        }
+        Ok(unsigned_to_signed(unsigned, length, size))
     }
 
     /// Reads a signed variable-length integer in reversed big-endian byte order at the current position.
@@ -1871,10 +1879,10 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```rust
     /// use dh::recommended::*;
     ///
-    /// let mut reader = dh::data::read(vec![0b10010000, 0b01000001]);
+    /// let mut reader = dh::data::read(vec![0b01100000, 0b00000000]);
     ///
-    /// let num = reader.read_vixber(1).unwrap();
-    /// assert_eq!(num, 0b0010000_1000001);
+    /// let num = reader.read_vixber(2).unwrap();
+    /// assert_eq!(num, -8192);
     /// ```
     fn read_vixber(&mut self, size: u8) -> Result<i128> {
         let mut fun = |s: u8| self.read_uxbe(s);
@@ -1882,16 +1890,6 @@ pub trait Readable<'a>: Read + Seekable {
         let unsigned = result.0;
         let length = result.1 as u8;
 
-        let block_len = size * 8 - 1;
-        let bit_len = block_len * length;
-        let negative = unsigned & (1 << (bit_len - 1)) != 0;
-
-        let int = (unsigned & !(1 << (bit_len - 1))) as i128;
-
-        if negative {
-            Ok(-int)
-        } else {
-            Ok(int)
-        }
+        Ok(unsigned_to_signed(unsigned, length, size))
     }
 }

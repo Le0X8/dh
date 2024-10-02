@@ -297,35 +297,29 @@ pub fn rw(data: &mut Vec<u8>) -> RwRefData {
 /// Closes a reader, writer, or reader and writer and returns the reference to the data it refers to.
 ///
 /// To get the mutable reference to the data, use the [`close_mut`] function instead.
-pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> Result<&'a Vec<u8>> {
-    match closable.into() {
-        ClosableRefData::R(r) => match r.close()? {
-            Some(DataType::VecRef(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
-        ClosableRefData::W(w) => match w.close()? {
-            Some(DataType::VecMut(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
-        ClosableRefData::Rw(rw) => match rw.rw_close()? {
-            Some(DataType::VecMut(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
+pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> &'a Vec<u8> {
+    // these unwraps are safe because the data is always returned
+    match match closable.into() {
+        ClosableRefData::R(r) => r.close().unwrap().unwrap(),
+        ClosableRefData::W(w) => w.close().unwrap().unwrap(),
+        ClosableRefData::Rw(rw) => rw.rw_close().unwrap().unwrap(),
+    } {
+        DataType::VecRef(data) => data,
+        DataType::VecMut(data) => data,
+        _ => unreachable!(),
     }
 }
 
 /// Closes a writer or reader and writer and returns the mutable reference to the data it refers to.
 ///
 /// To get the immutable reference to the data, use the [`close_ref`][close] function instead.
-pub fn close_mut<'a, T: Into<ClosableMutData<'a>>>(closable: T) -> Result<&'a mut Vec<u8>> {
-    match closable.into() {
-        ClosableMutData::W(w) => match w.close()? {
-            Some(DataType::VecMut(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
-        ClosableMutData::Rw(rw) => match rw.rw_close()? {
-            Some(DataType::VecMut(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
+pub fn close_mut<'a, T: Into<ClosableMutData<'a>>>(closable: T) -> &'a mut Vec<u8> {
+    // these unwraps are safe because the data is always returned
+    match match closable.into() {
+        ClosableMutData::W(w) => w.close().unwrap().unwrap(),
+        ClosableMutData::Rw(rw) => rw.rw_close().unwrap().unwrap(),
+    } {
+        DataType::VecMut(data) => data,
+        _ => unreachable!(),
     }
 }

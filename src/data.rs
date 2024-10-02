@@ -333,19 +333,14 @@ pub fn rw_new(len: u64) -> RwData {
 /// Closes a reader, writer, or reader and writer and returns the data the structure was holding.
 ///
 /// For references, please use the [`close_ref`] and [`close_mut`] functions.
-pub fn close<T: Into<ClosableData>>(closable: T) -> Result<Vec<u8>> {
-    match closable.into() {
-        ClosableData::R(r) => match r.close()? {
-            Some(DataType::Vec(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
-        ClosableData::W(w) => match w.close()? {
-            Some(DataType::Vec(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
-        ClosableData::Rw(rw) => match rw.rw_close()? {
-            Some(DataType::Vec(data)) => Ok(data),
-            _ => Err(Error::new(ErrorKind::InvalidData, "invalid data type")),
-        },
+pub fn close<T: Into<ClosableData>>(closable: T) -> Vec<u8> {
+    // these unwraps are safe because the data is always returned
+    match match closable.into() {
+        ClosableData::R(r) => r.close().unwrap().unwrap(),
+        ClosableData::W(w) => w.close().unwrap().unwrap(),
+        ClosableData::Rw(rw) => rw.rw_close().unwrap().unwrap(),
+    } {
+        DataType::Vec(data) => data,
+        _ => unreachable!(),
     }
 }

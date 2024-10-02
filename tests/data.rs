@@ -9,7 +9,7 @@ fn r000() {
     let size = reader.size().unwrap();
     assert_eq!(reader.read_utf8_at(0, size).unwrap(), "Hello, world!");
 
-    assert_eq!(data::close(reader).unwrap(), cloned);
+    assert_eq!(data::close(reader), cloned);
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn w000() {
 
     writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
 
-    let data = data::close(writer).unwrap();
+    let data = data::close(writer);
     assert_eq!(data, "Hello, rust !".as_bytes());
 }
 
@@ -42,7 +42,7 @@ fn w001() {
     writer.alloc(size + 5).unwrap(); // not necessary but it reserves RAM and prevents reallocation
     writer.write_utf8_at(7, &"rust world!".to_owned()).unwrap();
 
-    let data = data::close(writer).unwrap();
+    let data = data::close(writer);
     assert_eq!(data, "Hello, rust world!".as_bytes());
 }
 
@@ -55,7 +55,7 @@ fn w002() {
         .write_utf8_at(0, &"Hello, world!".to_owned())
         .unwrap();
 
-    let data = data::close(writer).unwrap();
+    let data = data::close(writer);
     assert_eq!(data, "Hello, world!".as_bytes());
 }
 
@@ -67,7 +67,7 @@ fn w003() {
         .write_utf8_at(0, &"Hello, world!".to_owned())
         .unwrap();
 
-    let data = data::close(writer).unwrap();
+    let data = data::close(writer);
     assert_eq!(data, "Hello, world!".as_bytes());
 }
 
@@ -79,7 +79,7 @@ fn w004() {
     let mut writer = data::write_new(8);
     reader.copy(8, &mut writer, 8000).unwrap(); // even if the limit is 8000, it will copy only 8 bytes
 
-    let new_buf = data::close(writer).unwrap();
+    let new_buf = data::close(writer);
     assert_eq!(new_buf, buf);
 }
 
@@ -91,7 +91,7 @@ fn w005() {
     let mut writer = data::write_new(8);
     reader.copy_to(4, 4, &mut writer, 4).unwrap();
 
-    let new_buf = data::close(writer).unwrap();
+    let new_buf = data::close(writer);
     assert_eq!(new_buf, vec![0, 0, 0, 0, 1, 2, 3, 4]);
 }
 
@@ -103,7 +103,7 @@ fn w006() {
     let mut writer = data::write_new(8);
     reader.copy_to_at(2, 2, 4, &mut writer, 4).unwrap();
 
-    let new_buf = data::close(writer).unwrap();
+    let new_buf = data::close(writer);
     assert_eq!(new_buf, vec![0, 0, 3, 4, 5, 6, 0, 0]);
 }
 
@@ -115,6 +115,6 @@ fn rw000() {
     rw.rewind().unwrap();
     assert_eq!(rw.read_u16be().unwrap(), 0x1234);
 
-    let data = data::close(rw).unwrap();
+    let data = data::close(rw);
     assert_eq!(data, vec![0x12, 0x34]);
 }
