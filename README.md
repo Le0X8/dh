@@ -71,7 +71,7 @@ use dh::recommended::*;
 fn main() {
     let mut file = dh::file::open_rw("data.txt").unwrap();
     file.write_utf8_at("Hello, world!\n", 0);
-    file.rw_rewind(); // just calling rewind would result into a conflict between Readable and Writable
+    file.rewind();
     assert_eq!(file.read_utf8(file.size()), "Hello, world!\n");
 }
 ```
@@ -101,7 +101,7 @@ fn main() {
     let mut data = vec![0u8; 1];
     let mut rw = dh::data::rw_ref(&mut data);
     rw.write_u8(31);
-    rw.rw_rewind();
+    rw.rewind();
     assert_eq!(rw.read_u8(), 31);
 }
 ```
@@ -115,7 +115,7 @@ fn main() {
     let data = vec![0u8; 1];
     let mut rw = dh::data::rw(data);
     rw.write_u8(31);
-    rw.rw_rewind();
+    rw.rewind();
     assert_eq!(rw.read_u8(), 31);
 
     let data = dh::data::close(rw);
