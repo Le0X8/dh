@@ -27,6 +27,8 @@
 - Floating point number support
 - Partial read & write access
 - Temporary file storage for large data
+- Zero-cost cloning
+- Zero-cost subarray clones
 
 ## Installation
 
