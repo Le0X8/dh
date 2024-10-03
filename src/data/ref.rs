@@ -280,23 +280,76 @@ impl<'a> From<RwRefData<'a>> for ClosableMutData<'a> {
 }
 
 /// Creates a new reader from a [`Vec<u8>`] reference.
+///
+/// ### Example
+///
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let data = vec![0, 1, 2, 3, 4, 5, 6, 7];
+/// let mut reader = data::read(&data);
+///
+/// assert_eq!(reader.read_u8_at(0).unwrap(), 0);
+/// ```
 pub fn read(data: &Vec<u8>) -> RRefData {
     RRefData { data, pos: 0 }
 }
 
 /// Creates a new writer from a [`Vec<u8>`] reference.
+///
+/// ### Example
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let mut data = "Hello, world!".as_bytes().to_vec();
+/// let mut writer = dh::data::write_ref(&mut data);
+///
+/// writer.write_utf8_at(7, &"Rust!".to_string()).unwrap();
+/// writer.close().unwrap();
+///
+/// assert_eq!(data, "Hello, Rust!!".as_bytes());
+/// ```
 pub fn write(data: &mut Vec<u8>) -> WRefData {
     WRefData { data, pos: 0 }
 }
 
 /// Creates a new reader and writer from a [`Vec<u8>`] reference.
+///
+/// ### Example
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let mut data = vec![0u8; 2];
+/// let mut rw = dh::data::rw_ref(&mut data);
+///
+/// rw.write_u16be(0x1234).unwrap();
+/// assert_eq!(rw.read_u16be_at(0).unwrap(), 0x1234);
+///
+/// rw.close().unwrap(); // removes the mutable reference
+/// ```
 pub fn rw(data: &mut Vec<u8>) -> RwRefData {
     RwRefData { data, pos: 0 }
 }
 
 /// Closes a reader, writer, or reader and writer and returns the reference to the data it refers to.
 ///
+/// **Note**: This function only takes [`RRefData`], [`WRefData`], and [`RwRefData`] as input.
+///
 /// To get the mutable reference to the data, use the [`close_mut`] function instead.
+///
+/// ### Example
+///
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let data = "Hello, world!".as_bytes().to_vec();
+/// let mut reader = dh::data::read_ref(&data);
+///
+/// let size = reader.size().unwrap();
+/// assert_eq!(reader.read_utf8_at(0, size).unwrap(), "Hello, world!");
+///
+/// assert_eq!(dh::data::close_ref(reader), &data);
+/// ```
 pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> &'a Vec<u8> {
     // these unwraps are safe because the data is always returned
     match match closable.into() {
@@ -312,7 +365,23 @@ pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> &'a Vec<u8> {
 
 /// Closes a writer or reader and writer and returns the mutable reference to the data it refers to.
 ///
+/// **Note**: This function only takes [`WRefData`] and [`RwRefData`] as input.
+///
 /// To get the immutable reference to the data, use the [`close_ref`][close] function instead.
+///
+/// ### Example
+///
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let mut data = "Hello, world!".as_bytes().to_vec();
+/// let mut writer = dh::data::write_ref(&mut data);
+///
+/// writer.write_utf8_at(7, &"Rust!".to_string()).unwrap();
+/// let data_ref = dh::data::close_mut(writer);
+///
+/// assert_eq!(data_ref, &mut "Hello, Rust!!".as_bytes().to_vec());
+/// ```
 pub fn close_mut<'a, T: Into<ClosableMutData<'a>>>(closable: T) -> &'a mut Vec<u8> {
     // these unwraps are safe because the data is always returned
     match match closable.into() {

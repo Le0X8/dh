@@ -1,3 +1,8 @@
+//! ## Open a file
+//! - [`open_r`][crate::file::open_r] opens a file in read-only mode.
+//! - [`open_w`][crate::file::open_w] opens a file in write-only mode.
+//! - [`open_rw`][crate::file::open_rw] opens a file in read-write mode.
+
 use crate::{DataType, Readable, Rw, Seekable, Writable};
 use fs4::fs_std::FileExt;
 use std::{
@@ -53,6 +58,19 @@ impl<'a> Readable<'a> for RFile {
 }
 
 /// Opens a file in read-only mode.
+///
+/// ### Example
+///
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let mut reader = dh::file::open_r("tests/samples/000").unwrap();
+///
+/// let size = reader.size().unwrap();
+/// assert_eq!(reader.read_utf8_at(0, size).unwrap(), "Hello, world!");
+///
+/// reader.close().unwrap();
+/// ```
 pub fn open_r<P>(path: P) -> Result<RFile>
 where
     P: AsRef<Path>,
@@ -127,6 +145,17 @@ impl<'a> Writable<'a> for WFile {
 }
 
 /// Opens a file in write-only mode.
+///
+/// ### Example
+///
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let mut writer = dh::file::open_w("doctest-file-open_w").unwrap();
+/// writer.write_utf8(&"Hello, world!".to_string()).unwrap();
+///
+/// writer.close().unwrap();
+/// ```
 pub fn open_w<P>(path: P) -> Result<WFile>
 where
     P: AsRef<Path>,
@@ -237,6 +266,18 @@ impl<'a> Rw<'a> for RwFile {
 }
 
 /// Opens a file in read-write mode.
+///
+/// ### Example
+///
+/// ```rust
+/// use dh::recommended::*;
+///
+/// let mut rw = dh::file::open_rw("doctest-file-open_rw").unwrap();
+///
+/// rw.write_utf8(&"Hello, world!".to_string()).unwrap();
+/// rw.rewind().unwrap();
+/// assert_eq!(rw.read_utf8(13).unwrap(), "Hello, world!");
+/// ```
 pub fn open_rw<P>(path: P) -> Result<RwFile>
 where
     P: AsRef<Path>,
