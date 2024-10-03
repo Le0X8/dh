@@ -143,10 +143,12 @@ fn main() {
 }
 ```
 
+-->
+
 ### Limit readable space
 
 ```rust
-use dh::{self, Readable, Writable};
+use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_r("data.txt").unwrap();
@@ -154,8 +156,6 @@ fn main() {
     assert_eq!(limited.read_utf8(5), "Hello");
 }
 ```
-
--->
 
 ## License
 
