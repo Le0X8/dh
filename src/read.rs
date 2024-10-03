@@ -1,4 +1,4 @@
-use crate::{DataType, Seekable, Writable};
+use crate::{limit_r, DataType, RLimited, Seekable, Writable};
 use std::{
     cmp::min,
     io::{ErrorKind, Read, Result},
@@ -130,6 +130,27 @@ pub trait Readable<'a>: Read + Seekable {
     /// reader.close().unwrap(); // if the reader goes out of scope, this happens automatically
     /// ```
     fn close(self) -> Result<Option<DataType<'a>>>;
+
+    /// Limits the space the reader can read from.
+    ///
+    /// The reader will only be able to read from `pos` to `pos + length`.
+    ///
+    /// **Note:** The reader will automatically jump to the start of the limit here.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let mut limited = reader.limit(2, 4).unwrap();
+    ///
+    /// let size = limited.size().unwrap();
+    /// assert_eq!(limited.read_bytes(size).unwrap(), vec![2, 3, 4, 5]);
+    /// ```
+    fn limit(&'a mut self, pos: u64, length: u64) -> Result<RLimited<'a, Self>> {
+        limit_r(self, pos, length)
+    }
 
     /// Copies data from the current position to a target at a specific position.
     ///

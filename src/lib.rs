@@ -68,6 +68,7 @@ pub use prelude as essentials;
 pub use prelude as common;
 pub use prelude as core;
 
+mod limited;
 mod read;
 mod rw;
 mod seek;
@@ -75,6 +76,7 @@ mod r#type;
 mod write;
 
 pub use data::{ClosableData, ClosableRefData};
+pub use limited::*;
 pub use prelude::*;
 pub use r#type::*;
 pub use read::*;
