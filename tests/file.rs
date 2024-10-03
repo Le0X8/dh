@@ -65,30 +65,6 @@ fn r001() {
     assert_eq!(reader.read_i16le_at(0).unwrap(), -6712);
 
     assert_eq!(reader.read_i16be_at(0).unwrap(), -14107);
-
-    /* assert_eq!(reader.read_vi7_at(0).unwrap(), -0b0101100_1100101_1001000);
-
-    assert_eq!(reader.read_vi7r_at(0).unwrap(), -0b0001000_1100101_1101100);
-
-    assert_eq!(
-        reader.read_vi15le_at(0).unwrap(),
-        0b010110011001111_110110001101100_110010111001000
-    );
-
-    assert_eq!(
-        reader.read_vi15be_at(0).unwrap(),
-        -0b010110011101100_100100011100101
-    );
-
-    assert_eq!(
-        reader.read_vi15ler_at(0).unwrap(),
-        -0b010010111001000_110110001101100_010110011001111
-    );
-
-    assert_eq!(
-        reader.read_vi15ber_at(0).unwrap(),
-        -0b000100011100101_110110011101100
-    ); */
 }
 
 #[test]
