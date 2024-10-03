@@ -1,6 +1,6 @@
 use std::io::{Result, Write};
 
-use crate::{DataType, Seekable};
+use crate::{limit_w, DataType, Seekable, WLimited};
 
 fn signed_to_unsigned(num: i128, size: u8) -> u128 {
     if size == 16 {
@@ -123,6 +123,30 @@ where
     /// reader.close().unwrap(); // if the writer goes out of scope, this happens automatically
     /// ```
     fn close(self) -> Result<Option<DataType<'a>>>;
+
+    /// Limits the space the writer can write to.
+    ///
+    /// The writer will only be able to write from `pos` to `pos + length`.
+    ///
+    /// **Note:** The writer will automatically jump to the start of the limit here.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut writer = dh::data::write(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let mut limited = writer.limit(2, 4).unwrap();
+    ///
+    /// let size = limited.size().unwrap();
+    /// limited.write_bytes(&vec![5, 4, 3, 2]).unwrap();
+    ///
+    /// let data = dh::data::close(writer);
+    /// assert_eq!(data, vec![0, 1, 5, 4, 3, 2, 6, 7]);
+    /// ```
+    fn limit(&'a mut self, pos: u64, length: u64) -> Result<WLimited<'a, Self>> {
+        limit_w(self, pos, length)
+    }
 
     /// Writes bytes at a specific position.
     ///

@@ -45,3 +45,31 @@ fn r001() {
 
     assert_eq!(reader.pos().unwrap(), 12);
 }
+
+#[test]
+fn w000() {
+    let mut data = "Hello, world!".as_bytes().to_vec();
+
+    let mut writer = dh::data::write_ref(&mut data);
+
+    let mut limited = writer.limit(6, 6).unwrap();
+
+    limited.jump(1).unwrap();
+    limited.write_utf8(&"rust ".to_string()).unwrap();
+
+    assert_eq!(data, "Hello, rust !".as_bytes());
+}
+
+#[test]
+fn rw000() {
+    let mut data = vec![0, 1, 2, 3, 4, 5, 6, 7];
+
+    let mut rw = dh::data::rw_ref(&mut data);
+
+    let mut limited = rw.rw_limit(2, 4).unwrap();
+
+    assert_eq!(limited.read_u16be().unwrap(), 0x0203);
+    limited.write_u16be(0x0504).unwrap();
+
+    assert_eq!(data, vec![0, 1, 2, 3, 5, 4, 6, 7]);
+}
