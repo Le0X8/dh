@@ -21,11 +21,11 @@
 - Read and write u8 vectors
 - std::io::Read and std::io::Write implementations for `Readable` and `Writable` (happens automatically as they extend these traits)
 - Copying data from a `Readable` to a `Writable`
+- Partial read & write access
 
 ### Planned features
 
 - Floating point number support
-- Partial read & write access
 - Temporary file storage for large data
 - Zero-cost cloning
 - Zero-cost subarray clones
