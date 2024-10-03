@@ -394,7 +394,7 @@ pub fn write_new(len: u64) -> WData {
 ///
 /// rw.write_u8(8).unwrap();
 ///
-/// assert_eq!(rw.read_bytes_at(0, 8).unwrap(), vec![0, 1, 2, 3, 4, 5, 6, 7]);
+/// assert_eq!(rw.read_bytes_at(0, 8).unwrap(), vec![8, 1, 2, 3, 4, 5, 6, 7]);
 /// rw.rw_close(); // we don't need the data back
 /// ```
 pub fn rw(data: Vec<u8>) -> RwData {

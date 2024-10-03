@@ -287,7 +287,7 @@ impl<'a> From<RwRefData<'a>> for ClosableMutData<'a> {
 /// use dh::recommended::*;
 ///
 /// let data = vec![0, 1, 2, 3, 4, 5, 6, 7];
-/// let mut reader = data::read(&data);
+/// let mut reader = dh::data::read_ref(&data);
 ///
 /// assert_eq!(reader.read_u8_at(0).unwrap(), 0);
 /// ```
@@ -325,7 +325,7 @@ pub fn write(data: &mut Vec<u8>) -> WRefData {
 /// rw.write_u16be(0x1234).unwrap();
 /// assert_eq!(rw.read_u16be_at(0).unwrap(), 0x1234);
 ///
-/// rw.close().unwrap(); // removes the mutable reference
+/// rw.rw_close().unwrap(); // removes the mutable reference
 /// ```
 pub fn rw(data: &mut Vec<u8>) -> RwRefData {
     RwRefData { data, pos: 0 }
