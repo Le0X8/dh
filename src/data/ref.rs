@@ -46,6 +46,10 @@ impl Seek for RRefData<'_> {
 impl Seekable for RRefData<'_> {}
 
 impl<'a> Readable<'a> for RRefData<'a> {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
@@ -108,6 +112,10 @@ impl Seek for WRefData<'_> {
 impl Seekable for WRefData<'_> {}
 
 impl<'a> Writable<'a> for WRefData<'a> {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, len: u64) -> Result<()> {
         let data_len = self.data.len();
         if len > data_len as u64 {
@@ -195,6 +203,10 @@ impl Seek for RwRefData<'_> {
 impl Seekable for RwRefData<'_> {}
 
 impl<'a> Readable<'a> for RwRefData<'a> {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
@@ -209,6 +221,10 @@ impl<'a> Readable<'a> for RwRefData<'a> {
 }
 
 impl<'a> Writable<'a> for RwRefData<'a> {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, len: u64) -> Result<()> {
         let data_len = self.data.len();
         if len > data_len as u64 {
@@ -231,6 +247,10 @@ impl<'a> Writable<'a> for RwRefData<'a> {
 }
 
 impl<'a> Rw<'a> for RwRefData<'a> {
+    fn rw_as_trait(&mut self) -> &mut dyn Rw<'a> {
+        self
+    }
+
     fn rw_close(self) -> Result<Option<DataType<'a>>> {
         Ok(Some(DataType::VecMut(self.data)))
     }

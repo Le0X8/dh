@@ -38,6 +38,10 @@ impl Drop for RFile {
 impl Seekable for RFile {}
 
 impl<'a> Readable<'a> for RFile {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, block: bool) -> Result<()> {
         if block {
             self.file.lock_exclusive()
@@ -114,6 +118,10 @@ impl Drop for WFile {
 impl Seekable for WFile {}
 
 impl<'a> Writable<'a> for WFile {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, len: u64) -> Result<()> {
         match self.file.allocate(len) {
             Ok(_) => Ok(()),
@@ -208,6 +216,10 @@ impl Drop for RwFile {
 impl Seekable for RwFile {}
 
 impl<'a> Readable<'a> for RwFile {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, block: bool) -> Result<()> {
         if block {
             self.file.lock_exclusive()
@@ -228,6 +240,10 @@ impl<'a> Readable<'a> for RwFile {
 }
 
 impl<'a> Writable<'a> for RwFile {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, len: u64) -> Result<()> {
         match self.file.allocate(len) {
             Ok(_) => Ok(()),
@@ -258,6 +274,10 @@ impl<'a> Writable<'a> for RwFile {
 }
 
 impl<'a> Rw<'a> for RwFile {
+    fn rw_as_trait(&mut self) -> &mut dyn Rw<'a> {
+        self
+    }
+
     fn rw_close(self) -> Result<Option<DataType<'a>>> {
         self.file.unlock()?;
         self.file.sync_all()?;

@@ -87,6 +87,18 @@ fn parse_vuxr(read_ux: &mut dyn FnMut(u8) -> Result<u128>, size: u8) -> Result<(
 /// Although the trait can be implemented for any type that implements [`Read`] and [`Seekable`],
 /// for most cases the [internal implementations](#implementors) are recommended.
 pub trait Readable<'a>: Read + Seekable {
+    /// An internal method to get the reader as a trait object.
+    /// Yes, this is kinda nonsense, but Rust forces me into that.
+    ///
+    /// ### How you implement it
+    ///
+    /// ```ignore
+    /// fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+    ///     self
+    /// }
+    /// ```
+    fn as_trait(&mut self) -> &mut dyn Readable<'a>;
+
     /// Locks the source exclusively for the current process.
     /// This only has an effect on some sources, like files.
     ///
@@ -148,11 +160,8 @@ pub trait Readable<'a>: Read + Seekable {
     /// let size = limited.size().unwrap();
     /// assert_eq!(limited.read_bytes(size).unwrap(), vec![2, 3, 4, 5]);
     /// ```
-    fn limit(&'a mut self, pos: u64, length: u64) -> Result<RLimited<'a>>
-    where
-        Self: Sized,
-    {
-        limit_r(self, pos, length)
+    fn limit(&'a mut self, pos: u64, length: u64) -> Result<RLimited<'a>> {
+        limit_r(self.as_trait(), pos, length)
     }
 
     /// Copies data from the current position to a target at a specific position.

@@ -64,6 +64,18 @@ pub trait Writable<'a>
 where
     Self: Write + Seekable,
 {
+    /// An internal method to get the reader as a trait object.
+    /// Yes, this is kinda nonsense, but Rust forces me into that.
+    ///
+    /// ### How you implement it
+    ///
+    /// ```ignore
+    /// fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+    ///     self
+    /// }
+    /// ```
+    fn as_trait(&mut self) -> &mut dyn Writable<'a>;
+
     /// Pre-allocates space in the data stream.
     /// This is useful when you know the size of the data you are going to write and want to avoid reallocations for performance reasons.
     /// Also, you can guarantee that the data will fit in the stream.
@@ -144,11 +156,8 @@ where
     /// let data = dh::data::close(writer);
     /// assert_eq!(data, vec![0, 1, 5, 4, 3, 2, 6, 7]);
     /// ```
-    fn limit(&'a mut self, pos: u64, length: u64) -> Result<WLimited<'a>>
-    where
-        Self: Sized,
-    {
-        limit_w(self, pos, length)
+    fn limit(&'a mut self, pos: u64, length: u64) -> Result<WLimited<'a>> {
+        limit_w(self.as_trait(), pos, length)
     }
 
     /// Writes bytes at a specific position.

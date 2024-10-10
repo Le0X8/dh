@@ -73,6 +73,10 @@ impl Seek for RData {
 impl Seekable for RData {}
 
 impl<'a> Readable<'a> for RData {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
@@ -143,6 +147,10 @@ impl Seek for WData {
 impl Seekable for WData {}
 
 impl<'a> Writable<'a> for WData {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, len: u64) -> Result<()> {
         self.data.resize(len as usize, 0);
         Ok(())
@@ -238,6 +246,10 @@ impl Seek for RwData {
 impl Seekable for RwData {}
 
 impl<'a> Readable<'a> for RwData {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, _: bool) -> Result<()> {
         Ok(())
     }
@@ -252,6 +264,10 @@ impl<'a> Readable<'a> for RwData {
 }
 
 impl<'a> Writable<'a> for RwData {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, len: u64) -> Result<()> {
         self.data.resize(len as usize, 0);
         Ok(())
@@ -274,6 +290,10 @@ impl<'a> Writable<'a> for RwData {
 }
 
 impl<'a> Rw<'a> for RwData {
+    fn rw_as_trait(&mut self) -> &mut dyn Rw<'a> {
+        self
+    }
+
     fn rw_close(self) -> Result<Option<DataType<'a>>> {
         Ok(Some(DataType::Vec(self.data)))
     }

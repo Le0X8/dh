@@ -52,6 +52,10 @@ impl<'a> Seek for RLimited<'a> {
 impl<'a> Seekable for RLimited<'a> {}
 
 impl<'a> Readable<'a> for RLimited<'a> {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, block: bool) -> Result<()> {
         self.data.lock(block)
     }
@@ -132,6 +136,10 @@ impl<'a> Seek for WLimited<'a> {
 impl<'a> Seekable for WLimited<'a> {}
 
 impl<'a> Writable<'a> for WLimited<'a> {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, _: u64) -> Result<()> {
         Err(std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -235,6 +243,10 @@ impl<'a> Seek for RwLimited<'a> {
 impl<'a> Seekable for RwLimited<'a> {}
 
 impl<'a> Readable<'a> for RwLimited<'a> {
+    fn as_trait(&mut self) -> &mut dyn Readable<'a> {
+        self
+    }
+
     fn lock(&mut self, block: bool) -> Result<()> {
         Readable::lock(self.data, block)
     }
@@ -249,6 +261,10 @@ impl<'a> Readable<'a> for RwLimited<'a> {
 }
 
 impl<'a> Writable<'a> for RwLimited<'a> {
+    fn as_trait(&mut self) -> &mut dyn Writable<'a> {
+        self
+    }
+
     fn alloc(&mut self, _: u64) -> Result<()> {
         Err(std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -270,6 +286,10 @@ impl<'a> Writable<'a> for RwLimited<'a> {
 }
 
 impl<'a> Rw<'a> for RwLimited<'a> {
+    fn rw_as_trait(&mut self) -> &mut dyn Rw<'a> {
+        self
+    }
+
     fn rw_close(self) -> Result<Option<crate::DataType<'a>>> {
         Ok(None)
     }

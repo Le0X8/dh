@@ -7,6 +7,18 @@ pub trait Rw<'a>
 where
     Self: Readable<'a> + Writable<'a>,
 {
+    /// An internal method to get the reader as a trait object.
+    /// Yes, this is kinda nonsense, but Rust forces me into that.
+    ///
+    /// ### How you implement it
+    ///
+    /// ```ignore
+    /// fn rw_as_trait(&mut self) -> &mut dyn Rw<'a> {
+    ///     self
+    /// }
+    /// ```
+    fn rw_as_trait(&mut self) -> &mut dyn Rw<'a>;
+
     /// Closes the R/W stream and can return the target if it was moved or references it.
     ///
     /// Use this instead of [`Readable::close`] or [`Writable::close`] for cleaner code as you avoid the naming conflict.
@@ -32,10 +44,7 @@ where
     /// limited.rewind().unwrap();
     /// assert_eq!(limited.read_u16be().unwrap(), 0x0104);
     /// ```
-    fn rw_limit(&'a mut self, start: u64, length: u64) -> Result<RwLimited<'a>>
-    where
-        Self: Sized,
-    {
-        limit_rw(self, start, length)
+    fn rw_limit(&'a mut self, start: u64, length: u64) -> Result<RwLimited<'a>> {
+        limit_rw(self.rw_as_trait(), start, length)
     }
 }
