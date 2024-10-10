@@ -11,6 +11,14 @@ pub struct RLimited<'a> {
     end: u64,
 }
 
+impl<'a> RLimited<'a> {
+    /// Gets the reference back.
+    /// This can be useful if you run into borrow checker issues.
+    pub fn unlimit(self) -> &'a mut dyn Readable<'a> {
+        self.data
+    }
+}
+
 impl<'a> Read for RLimited<'a> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let start_pos = self.data.pos()?;
@@ -89,6 +97,14 @@ pub struct WLimited<'a> {
     data: &'a mut dyn Writable<'a>,
     start: u64,
     end: u64,
+}
+
+impl<'a> WLimited<'a> {
+    /// Gets the reference back.
+    /// This can be useful if you run into borrow checker issues.
+    pub fn unlimit(self) -> &'a mut dyn Writable<'a> {
+        self.data
+    }
 }
 
 impl<'a> Write for WLimited<'a> {
@@ -180,6 +196,14 @@ pub struct RwLimited<'a> {
     data: &'a mut dyn Rw<'a>,
     start: u64,
     end: u64,
+}
+
+impl<'a> RwLimited<'a> {
+    /// Gets the reference back.
+    /// This can be useful if you run into borrow checker issues.
+    pub fn unlimit(self) -> &'a mut dyn Rw<'a> {
+        self.data
+    }
 }
 
 impl<'a> Read for RwLimited<'a> {
