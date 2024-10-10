@@ -32,7 +32,10 @@ where
     /// limited.rewind().unwrap();
     /// assert_eq!(limited.read_u16be().unwrap(), 0x0104);
     /// ```
-    fn rw_limit(&'a mut self, start: u64, length: u64) -> Result<RwLimited<'a, Self>> {
+    fn rw_limit(&'a mut self, start: u64, length: u64) -> Result<RwLimited<'a>>
+    where
+        Self: Sized,
+    {
         limit_rw(self, start, length)
     }
 }

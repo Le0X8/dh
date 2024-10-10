@@ -144,7 +144,10 @@ where
     /// let data = dh::data::close(writer);
     /// assert_eq!(data, vec![0, 1, 5, 4, 3, 2, 6, 7]);
     /// ```
-    fn limit(&'a mut self, pos: u64, length: u64) -> Result<WLimited<'a, Self>> {
+    fn limit(&'a mut self, pos: u64, length: u64) -> Result<WLimited<'a>>
+    where
+        Self: Sized,
+    {
         limit_w(self, pos, length)
     }
 

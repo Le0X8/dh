@@ -148,18 +148,21 @@ pub trait Readable<'a>: Read + Seekable {
     /// let size = limited.size().unwrap();
     /// assert_eq!(limited.read_bytes(size).unwrap(), vec![2, 3, 4, 5]);
     /// ```
-    fn limit(&'a mut self, pos: u64, length: u64) -> Result<RLimited<'a, Self>> {
+    fn limit(&'a mut self, pos: u64, length: u64) -> Result<RLimited<'a>>
+    where
+        Self: Sized,
+    {
         limit_r(self, pos, length)
     }
 
     /// Copies data from the current position to a target at a specific position.
     ///
     /// This executes the [`copy`][Readable::copy] method at `pos` and then returns to the original position.
-    fn copy_at<T: Writable<'a>>(
+    fn copy_at(
         &mut self,
         pos: u64,
         length: u64,
-        target: &mut T,
+        target: &mut dyn Writable<'a>,
         buffer_size: u64,
     ) -> Result<()> {
         let pos_before = self.stream_position()?;
@@ -172,12 +175,12 @@ pub trait Readable<'a>: Read + Seekable {
     /// Copies data from the current position to a target at a specific position to a specific position.
     ///
     /// This executes the [`copy_to`][Readable::copy_to] method at `pos` and then returns to the original position.
-    fn copy_to_at<T: Writable<'a>>(
+    fn copy_to_at(
         &mut self,
         pos: u64,
         target_pos: u64,
         length: u64,
-        target: &mut T,
+        target: &mut dyn Writable<'a>,
         buffer_size: u64,
     ) -> Result<()> {
         let pos_before = self.stream_position()?;
@@ -952,12 +955,7 @@ pub trait Readable<'a>: Read + Seekable {
     /// let data = dh::data::close(target);
     /// assert_eq!(data, vec![0, 1, 2, 3, 0, 1, 2, 3]);
     /// ```
-    fn copy<T: Writable<'a>>(
-        &mut self,
-        length: u64,
-        target: &mut T,
-        buffer_size: u64,
-    ) -> Result<()> {
+    fn copy(&mut self, length: u64, target: &mut dyn Writable<'a>, buffer_size: u64) -> Result<()> {
         let mut buf = vec![0; buffer_size as usize];
         let mut remaining = length;
 
@@ -989,11 +987,11 @@ pub trait Readable<'a>: Read + Seekable {
     /// let data = dh::data::close(target);
     /// assert_eq!(data, vec![0, 0, 1, 2, 3, 4, 0, 0]);
     /// ```
-    fn copy_to<T: Writable<'a>>(
+    fn copy_to(
         &mut self,
         target_pos: u64,
         length: u64,
-        target: &mut T,
+        target: &mut dyn Writable<'a>,
         buffer_size: u64,
     ) -> Result<()> {
         let target_pos_before = target.stream_position()?;

@@ -5,13 +5,13 @@ use crate::{Readable, Rw, Seekable, Writable};
 /// A limited reader.
 ///
 /// See [`Readable::limit`] for more information.
-pub struct RLimited<'a, T: Readable<'a> + ?Sized> {
-    data: &'a mut T,
+pub struct RLimited<'a> {
+    data: &'a mut dyn Readable<'a>,
     start: u64,
     end: u64,
 }
 
-impl<'a, T: Readable<'a>> Read for RLimited<'a, T> {
+impl<'a> Read for RLimited<'a> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let start_pos = self.data.pos()?;
         let end_pos = start_pos + buf.len() as u64;
@@ -27,7 +27,7 @@ impl<'a, T: Readable<'a>> Read for RLimited<'a, T> {
     }
 }
 
-impl<'a, T: Readable<'a>> Seek for RLimited<'a, T> {
+impl<'a> Seek for RLimited<'a> {
     fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
         let new_pos = match pos {
             SeekFrom::Start(offset) => self.start + offset,
@@ -49,9 +49,9 @@ impl<'a, T: Readable<'a>> Seek for RLimited<'a, T> {
     }
 }
 
-impl<'a, T: Readable<'a>> Seekable for RLimited<'a, T> {}
+impl<'a> Seekable for RLimited<'a> {}
 
-impl<'a, T: Readable<'a>> Readable<'a> for RLimited<'a, T> {
+impl<'a> Readable<'a> for RLimited<'a> {
     fn lock(&mut self, block: bool) -> Result<()> {
         self.data.lock(block)
     }
@@ -65,11 +65,11 @@ impl<'a, T: Readable<'a>> Readable<'a> for RLimited<'a, T> {
     }
 }
 
-pub(crate) fn limit_r<'a, T: Readable<'a> + ?Sized>(
-    data: &'a mut T,
+pub(crate) fn limit_r<'a>(
+    data: &'a mut dyn Readable<'a>,
     start: u64,
     length: u64,
-) -> Result<RLimited<'a, T>> {
+) -> Result<RLimited<'a>> {
     data.to(start)?;
     Ok(RLimited {
         data,
@@ -81,13 +81,13 @@ pub(crate) fn limit_r<'a, T: Readable<'a> + ?Sized>(
 /// A limited writer.
 ///
 /// See [`Writable::limit`] for more information.
-pub struct WLimited<'a, T: Writable<'a> + ?Sized> {
-    data: &'a mut T,
+pub struct WLimited<'a> {
+    data: &'a mut dyn Writable<'a>,
     start: u64,
     end: u64,
 }
 
-impl<'a, T: Writable<'a>> Write for WLimited<'a, T> {
+impl<'a> Write for WLimited<'a> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let start_pos = self.data.pos()?;
         let end_pos = start_pos + buf.len() as u64;
@@ -107,7 +107,7 @@ impl<'a, T: Writable<'a>> Write for WLimited<'a, T> {
     }
 }
 
-impl<'a, T: Writable<'a>> Seek for WLimited<'a, T> {
+impl<'a> Seek for WLimited<'a> {
     fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
         let new_pos = match pos {
             SeekFrom::Start(offset) => self.start + offset,
@@ -129,9 +129,9 @@ impl<'a, T: Writable<'a>> Seek for WLimited<'a, T> {
     }
 }
 
-impl<'a, T: Writable<'a>> Seekable for WLimited<'a, T> {}
+impl<'a> Seekable for WLimited<'a> {}
 
-impl<'a, T: Writable<'a>> Writable<'a> for WLimited<'a, T> {
+impl<'a> Writable<'a> for WLimited<'a> {
     fn alloc(&mut self, _: u64) -> Result<()> {
         Err(std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -152,11 +152,11 @@ impl<'a, T: Writable<'a>> Writable<'a> for WLimited<'a, T> {
     }
 }
 
-pub(crate) fn limit_w<'a, T: Writable<'a> + ?Sized>(
-    data: &'a mut T,
+pub(crate) fn limit_w<'a>(
+    data: &'a mut dyn Writable<'a>,
     start: u64,
     length: u64,
-) -> Result<WLimited<'a, T>> {
+) -> Result<WLimited<'a>> {
     data.to(start)?;
     Ok(WLimited {
         data,
@@ -168,13 +168,13 @@ pub(crate) fn limit_w<'a, T: Writable<'a> + ?Sized>(
 /// A limited R/W stream.
 ///
 /// See [`Rw::rw_limit`] for more information.
-pub struct RwLimited<'a, T: Rw<'a> + ?Sized> {
-    data: &'a mut T,
+pub struct RwLimited<'a> {
+    data: &'a mut dyn Rw<'a>,
     start: u64,
     end: u64,
 }
 
-impl<'a, T: Rw<'a>> Read for RwLimited<'a, T> {
+impl<'a> Read for RwLimited<'a> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let start_pos = self.data.pos()?;
         let end_pos = start_pos + buf.len() as u64;
@@ -190,7 +190,7 @@ impl<'a, T: Rw<'a>> Read for RwLimited<'a, T> {
     }
 }
 
-impl<'a, T: Rw<'a>> Write for RwLimited<'a, T> {
+impl<'a> Write for RwLimited<'a> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let start_pos = self.data.pos()?;
         let end_pos = start_pos + buf.len() as u64;
@@ -210,7 +210,7 @@ impl<'a, T: Rw<'a>> Write for RwLimited<'a, T> {
     }
 }
 
-impl<'a, T: Rw<'a>> Seek for RwLimited<'a, T> {
+impl<'a> Seek for RwLimited<'a> {
     fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
         let new_pos = match pos {
             SeekFrom::Start(offset) => self.start + offset,
@@ -232,9 +232,9 @@ impl<'a, T: Rw<'a>> Seek for RwLimited<'a, T> {
     }
 }
 
-impl<'a, T: Rw<'a>> Seekable for RwLimited<'a, T> {}
+impl<'a> Seekable for RwLimited<'a> {}
 
-impl<'a, T: Rw<'a>> Readable<'a> for RwLimited<'a, T> {
+impl<'a> Readable<'a> for RwLimited<'a> {
     fn lock(&mut self, block: bool) -> Result<()> {
         Readable::lock(self.data, block)
     }
@@ -248,7 +248,7 @@ impl<'a, T: Rw<'a>> Readable<'a> for RwLimited<'a, T> {
     }
 }
 
-impl<'a, T: Rw<'a>> Writable<'a> for RwLimited<'a, T> {
+impl<'a> Writable<'a> for RwLimited<'a> {
     fn alloc(&mut self, _: u64) -> Result<()> {
         Err(std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -269,17 +269,17 @@ impl<'a, T: Rw<'a>> Writable<'a> for RwLimited<'a, T> {
     }
 }
 
-impl<'a, T: Rw<'a>> Rw<'a> for RwLimited<'a, T> {
+impl<'a> Rw<'a> for RwLimited<'a> {
     fn rw_close(self) -> Result<Option<crate::DataType<'a>>> {
         Ok(None)
     }
 }
 
-pub(crate) fn limit_rw<'a, T: Rw<'a> + ?Sized>(
-    data: &'a mut T,
+pub(crate) fn limit_rw<'a>(
+    data: &'a mut dyn Rw<'a>,
     start: u64,
     length: u64,
-) -> Result<RwLimited<'a, T>> {
+) -> Result<RwLimited<'a>> {
     data.to(start)?;
     Ok(RwLimited {
         data,
