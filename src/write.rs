@@ -1,6 +1,6 @@
 use std::io::{Result, Write};
 
-use crate::{limit_w, DataType, Seekable, WLimited};
+use crate::{limit_w, DataType, Seekable, Source, WLimited};
 
 fn signed_to_unsigned(num: i128, size: u8) -> u128 {
     if size == 16 {
@@ -76,52 +76,21 @@ where
     /// ```
     fn as_trait(&mut self) -> &mut dyn Writable<'a>;
 
-    /// Pre-allocates space in the data stream.
-    /// This is useful when you know the size of the data you are going to write and want to avoid reallocations for performance reasons.
-    /// Also, you can guarantee that the data will fit in the stream.
-    ///
-    /// ### Example
-    /// ```rust
-    /// use dh::recommended::*;
-    ///
-    /// let mut file = dh::file::open_w("doctest-writable-alloc").unwrap();
-    /// let str = "Hello, world!".to_string();
-    /// file.alloc(str.len() as u64).unwrap();
-    ///
-    /// file.write_utf8(&str).unwrap(); // this needs no reallocation
-    /// ```
-    fn alloc(&mut self, len: u64) -> Result<()>;
-
-    /// Locks the source exclusively for the current process.
-    /// This only has an effect on some sources, like files.
-    ///
-    /// ### Example
-    ///
-    /// ```should_panic
-    /// use dh::recommended::*;
-    ///
-    /// let mut file1 = dh::file::open_w("doctest-writable-lock").unwrap();
-    /// file1.lock(true).unwrap(); // this would block the thread until the file is unlocked
-    ///
-    /// let mut file2 = dh::file::open_w("doctest-writable-lock").unwrap();
-    /// file2.lock(false).unwrap(); // fails, because the file is already locked
-    /// ```
-    fn lock(&mut self, block: bool) -> Result<()>;
-
-    /// Unlocks the source for other processes.
-    /// This happens automatically when the source goes out of scope, is closed or dropped.
+    /// Borrows the write source.
     ///
     /// ### Example
     ///
     /// ```rust
     /// use dh::recommended::*;
     ///
-    /// let mut file = dh::file::open_w("tests/samples/000").unwrap();
-    /// file.lock(true).unwrap();
-    /// // do something with the file
-    /// file.unlock().unwrap();
+    /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let source = reader.source();
+    /// match source {
+    ///     Vec(source) => assert_eq!(source, &mut vec![0, 1, 2, 3, 4, 5, 6, 7]),
+    ///     _ => unreachable!(),
+    /// }
     /// ```
-    fn unlock(&mut self) -> Result<()>;
+    fn source(&mut self) -> Source;
 
     /// Closes the reader and can return the source if it was moved or references it.
     ///

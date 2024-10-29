@@ -1,6 +1,6 @@
 [package]
 name = "dh"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2021"
 description = "Data handling in Rust, made easy."
 license = "MIT"
@@ -12,4 +12,3 @@ keywords = [ "data", "files", "read", "write", "rw" ]
 categories = [ "data-structures", "encoding", "filesystem", "parsing" ]
 
 [dependencies]
-fs4 = "0.10.0"

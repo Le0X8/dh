@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use crate::{limit_rw, DataType, Readable, RwLimited, Writable};
+use crate::{limit_rw, DataType, Readable, RwLimited, Source, Writable};
 
 /// Provides methods to combine the [`Readable`] and [`Writable`] traits.
 pub trait Rw<'a>
@@ -18,6 +18,22 @@ where
     /// }
     /// ```
     fn rw_as_trait(&mut self) -> &mut dyn Rw<'a>;
+
+    /// Borrows the read/write source.
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use dh::recommended::*;
+    ///
+    /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let source = reader.source();
+    /// match source {
+    ///     Vec(source) => assert_eq!(source, &mut vec![0, 1, 2, 3, 4, 5, 6, 7]),
+    ///     _ => unreachable!(),
+    /// }
+    /// ```
+    fn rw_source(&mut self) -> Source;
 
     /// Closes the R/W stream and can return the target if it was moved or references it.
     ///

@@ -1,4 +1,4 @@
-use crate::{limit_r, DataType, RLimited, Seekable, Writable};
+use crate::{limit_r, DataType, RLimited, Seekable, Source, Writable};
 use std::{
     cmp::min,
     io::{ErrorKind, Read, Result},
@@ -99,36 +99,21 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```
     fn as_trait(&mut self) -> &mut dyn Readable<'a>;
 
-    /// Locks the source exclusively for the current process.
-    /// This only has an effect on some sources, like files.
-    ///
-    /// ### Example
-    ///
-    /// ```should_panic
-    /// use dh::recommended::*;
-    ///
-    /// let mut file1 = dh::file::open_r("tests/samples/000").unwrap();
-    /// file1.lock(true).unwrap(); // this would block the thread until the file is unlocked
-    ///
-    /// let mut file2 = dh::file::open_r("tests/samples/000").unwrap();
-    /// file2.lock(false).unwrap(); // fails, because the file is already locked
-    /// ```
-    fn lock(&mut self, block: bool) -> Result<()>;
-
-    /// Unlocks the source for other processes.
-    /// This happens automatically when the source goes out of scope, is closed or dropped.
+    /// Borrows the read source.
     ///
     /// ### Example
     ///
     /// ```rust
     /// use dh::recommended::*;
     ///
-    /// let mut file = dh::file::open_r("tests/samples/000").unwrap();
-    /// file.lock(true).unwrap();
-    /// // do something with the file
-    /// file.unlock().unwrap();
+    /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let source = reader.source();
+    /// match source {
+    ///     Vec(source) => assert_eq!(source, &mut vec![0, 1, 2, 3, 4, 5, 6, 7]),
+    ///     _ => unreachable!(),
+    /// }
     /// ```
-    fn unlock(&mut self) -> Result<()>;
+    fn source(&mut self) -> Source;
 
     /// Closes the reader and can return the source if it was moved or references it.
     ///

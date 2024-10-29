@@ -38,8 +38,6 @@ fn w001() {
     let data = "Hello, world!".as_bytes().to_vec();
     let mut writer = data::write(data);
 
-    let size = writer.size().unwrap();
-    writer.alloc(size + 5).unwrap(); // not necessary but it reserves RAM and prevents reallocation
     writer.write_utf8_at(7, &"rust world!".to_owned()).unwrap();
 
     let data = data::close(writer);
@@ -50,7 +48,6 @@ fn w001() {
 fn w002() {
     let mut writer = data::write_empty();
 
-    writer.alloc(13).unwrap();
     writer
         .write_utf8_at(0, &"Hello, world!".to_owned())
         .unwrap();

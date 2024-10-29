@@ -43,12 +43,10 @@ fn w001() {
     let mut data = "Hello, world!".as_bytes().to_vec();
     let mut writer = data::write_ref(&mut data);
 
-    let size = writer.size().unwrap();
-    writer.alloc(size + 5).unwrap(); // not necessary but it reserves RAM and prevents reallocation
-    writer.write_utf8_at(7, &"rust world!".to_owned()).unwrap();
+    writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
 
     writer.close().unwrap(); // recommended if the data is not used anymore
-    assert_eq!(data, "Hello, rust world!".as_bytes());
+    assert_eq!(data, "Hello, rust !".as_bytes());
 }
 
 #[test]

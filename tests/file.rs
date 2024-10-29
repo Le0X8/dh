@@ -72,8 +72,6 @@ fn w000() {
     let path = "tests/samples/w000";
     let mut writer = file::open_w(path).unwrap();
     let str = String::from("Hello, world!");
-    writer.lock(false).unwrap(); // not necessary, but this prevents other processes from accessing the file
-    writer.alloc(str.len() as u64).unwrap(); // not necessary, but it reserves space on the disk
     writer.write_utf8_at(0, &str).unwrap();
     writer.close().unwrap();
 

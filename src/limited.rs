@@ -1,6 +1,6 @@
 use std::io::{Read, Result, Seek, SeekFrom, Write};
 
-use crate::{Readable, Rw, Seekable, Writable};
+use crate::{Readable, Rw, Seekable, Source, Writable};
 
 /// A limited reader.
 ///
@@ -60,16 +60,12 @@ impl<'a> Seek for RLimited<'a> {
 impl<'a> Seekable for RLimited<'a> {}
 
 impl<'a> Readable<'a> for RLimited<'a> {
+    fn source(&mut self) -> Source {
+        self.data.source()
+    }
+
     fn as_trait(&mut self) -> &mut dyn Readable<'a> {
         self
-    }
-
-    fn lock(&mut self, block: bool) -> Result<()> {
-        self.data.lock(block)
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        self.data.unlock()
     }
 
     fn close(self) -> Result<Option<crate::DataType<'a>>> {
@@ -156,23 +152,12 @@ impl<'a> Writable<'a> for WLimited<'a> {
         self
     }
 
-    fn alloc(&mut self, _: u64) -> Result<()> {
-        Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "alloc is not supported for limited writers",
-        ))
-    }
-
-    fn lock(&mut self, block: bool) -> Result<()> {
-        self.data.lock(block)
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        self.data.unlock()
-    }
-
     fn close(self) -> Result<Option<crate::DataType<'a>>> {
         Ok(None)
+    }
+
+    fn source(&mut self) -> Source {
+        self.data.source()
     }
 }
 
@@ -271,16 +256,12 @@ impl<'a> Readable<'a> for RwLimited<'a> {
         self
     }
 
-    fn lock(&mut self, block: bool) -> Result<()> {
-        Readable::lock(self.data, block)
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        Readable::unlock(self.data)
-    }
-
     fn close(self) -> Result<Option<crate::DataType<'a>>> {
         Ok(None)
+    }
+
+    fn source(&mut self) -> Source {
+        self.data.rw_source()
     }
 }
 
@@ -289,23 +270,12 @@ impl<'a> Writable<'a> for RwLimited<'a> {
         self
     }
 
-    fn alloc(&mut self, _: u64) -> Result<()> {
-        Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "alloc is not supported for limited writers",
-        ))
-    }
-
-    fn lock(&mut self, block: bool) -> Result<()> {
-        Writable::lock(self.data, block)
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        Writable::unlock(self.data)
-    }
-
     fn close(self) -> Result<Option<crate::DataType<'a>>> {
         Ok(None)
+    }
+
+    fn source(&mut self) -> Source {
+        self.data.rw_source()
     }
 }
 
@@ -316,6 +286,10 @@ impl<'a> Rw<'a> for RwLimited<'a> {
 
     fn rw_close(self) -> Result<Option<crate::DataType<'a>>> {
         Ok(None)
+    }
+
+    fn rw_source(&mut self) -> Source {
+        self.data.rw_source()
     }
 }
 

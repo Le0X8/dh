@@ -19,7 +19,7 @@
 //! - [`close`][crate::data::close] closes a reader, writer, or reader and writer and returns the data.
 
 #![allow(rustdoc::broken_intra_doc_links)] // rustdoc has some issues with the links above
-use crate::{DataType, Readable, Rw, Seekable, Writable};
+use crate::{DataType, Readable, Rw, Seekable, Source, Writable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 
 mod r#ref;
@@ -77,16 +77,12 @@ impl<'a> Readable<'a> for RData {
         self
     }
 
-    fn lock(&mut self, _: bool) -> Result<()> {
-        Ok(())
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        Ok(())
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>> {
         Ok(Some(DataType::Vec(self.data)))
+    }
+
+    fn source(&mut self) -> Source {
+        Source::Vec(&mut self.data)
     }
 }
 
@@ -151,24 +147,15 @@ impl<'a> Writable<'a> for WData {
         self
     }
 
-    fn alloc(&mut self, len: u64) -> Result<()> {
-        self.data.resize(len as usize, 0);
-        Ok(())
-    }
-
-    fn lock(&mut self, _: bool) -> Result<()> {
-        Ok(())
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        Ok(())
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>>
     where
         Self: 'a,
     {
         Ok(Some(DataType::Vec(self.data)))
+    }
+
+    fn source(&mut self) -> Source {
+        Source::Vec(&mut self.data)
     }
 }
 
@@ -250,16 +237,12 @@ impl<'a> Readable<'a> for RwData {
         self
     }
 
-    fn lock(&mut self, _: bool) -> Result<()> {
-        Ok(())
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        Ok(())
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>> {
         Ok(Some(DataType::Vec(self.data)))
+    }
+
+    fn source(&mut self) -> Source {
+        Source::Vec(&mut self.data)
     }
 }
 
@@ -268,24 +251,15 @@ impl<'a> Writable<'a> for RwData {
         self
     }
 
-    fn alloc(&mut self, len: u64) -> Result<()> {
-        self.data.resize(len as usize, 0);
-        Ok(())
-    }
-
-    fn lock(&mut self, _: bool) -> Result<()> {
-        Ok(())
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        Ok(())
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>>
     where
         Self: 'a,
     {
         Ok(Some(DataType::Vec(self.data)))
+    }
+
+    fn source(&mut self) -> Source {
+        Source::Vec(&mut self.data)
     }
 }
 
@@ -296,6 +270,10 @@ impl<'a> Rw<'a> for RwData {
 
     fn rw_close(self) -> Result<Option<DataType<'a>>> {
         Ok(Some(DataType::Vec(self.data)))
+    }
+
+    fn rw_source(&mut self) -> Source {
+        Source::Vec(&mut self.data)
     }
 }
 

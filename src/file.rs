@@ -3,8 +3,7 @@
 //! - [`open_w`][crate::file::open_w] opens a file in write-only mode.
 //! - [`open_rw`][crate::file::open_rw] opens a file in read-write mode.
 
-use crate::{DataType, Readable, Rw, Seekable, Writable};
-use fs4::fs_std::FileExt;
+use crate::{DataType, Readable, Rw, Seekable, Source, Writable};
 use std::{
     fs::{File, OpenOptions},
     io::{Read, Result, Seek, Write},
@@ -30,7 +29,6 @@ impl Seek for RFile {
 
 impl Drop for RFile {
     fn drop(&mut self) {
-        self.file.unlock().unwrap();
         self.file.sync_all().unwrap();
     }
 }
@@ -38,24 +36,15 @@ impl Drop for RFile {
 impl Seekable for RFile {}
 
 impl<'a> Readable<'a> for RFile {
+    fn source(&mut self) -> Source {
+        Source::File(&mut self.file)
+    }
+
     fn as_trait(&mut self) -> &mut dyn Readable<'a> {
         self
     }
 
-    fn lock(&mut self, block: bool) -> Result<()> {
-        if block {
-            self.file.lock_exclusive()
-        } else {
-            self.file.try_lock_exclusive()
-        }
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        self.file.unlock()
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>> {
-        self.file.unlock()?;
         self.file.sync_all()?;
         Ok(None)
     }
@@ -110,7 +99,6 @@ impl Seek for WFile {
 
 impl Drop for WFile {
     fn drop(&mut self) {
-        self.file.unlock().unwrap();
         self.file.sync_all().unwrap();
     }
 }
@@ -122,33 +110,14 @@ impl<'a> Writable<'a> for WFile {
         self
     }
 
-    fn alloc(&mut self, len: u64) -> Result<()> {
-        match self.file.allocate(len) {
-            Ok(_) => Ok(()),
-            Err(_) => match self.file.set_len(len) {
-                Ok(_) => Ok(()),
-                Err(e) => Err(e),
-            },
-        }
-    }
-
-    fn lock(&mut self, block: bool) -> Result<()> {
-        if block {
-            self.file.lock_exclusive()
-        } else {
-            self.file.try_lock_exclusive()
-        }
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        self.file.unlock()
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>> {
-        self.file.unlock()?;
         self.file.sync_all()?;
 
         Ok(None)
+    }
+
+    fn source(&mut self) -> Source {
+        Source::File(&mut self.file)
     }
 }
 
@@ -208,7 +177,6 @@ impl Seek for RwFile {
 
 impl Drop for RwFile {
     fn drop(&mut self) {
-        self.file.unlock().unwrap();
         self.file.sync_all().unwrap();
     }
 }
@@ -220,22 +188,13 @@ impl<'a> Readable<'a> for RwFile {
         self
     }
 
-    fn lock(&mut self, block: bool) -> Result<()> {
-        if block {
-            self.file.lock_exclusive()
-        } else {
-            self.file.try_lock_exclusive()
-        }
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        self.file.unlock()
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>> {
-        self.file.unlock()?;
         self.file.sync_all()?;
         Ok(None)
+    }
+
+    fn source(&mut self) -> Source {
+        Source::File(&mut self.file)
     }
 }
 
@@ -244,32 +203,13 @@ impl<'a> Writable<'a> for RwFile {
         self
     }
 
-    fn alloc(&mut self, len: u64) -> Result<()> {
-        match self.file.allocate(len) {
-            Ok(_) => Ok(()),
-            Err(_) => match self.file.set_len(len) {
-                Ok(_) => Ok(()),
-                Err(e) => Err(e),
-            },
-        }
-    }
-
-    fn lock(&mut self, block: bool) -> Result<()> {
-        if block {
-            self.file.lock_exclusive()
-        } else {
-            self.file.try_lock_exclusive()
-        }
-    }
-
-    fn unlock(&mut self) -> Result<()> {
-        self.file.unlock()
-    }
-
     fn close(self) -> Result<Option<DataType<'a>>> {
-        self.file.unlock()?;
         self.file.sync_all()?;
         Ok(None)
+    }
+
+    fn source(&mut self) -> Source {
+        Source::File(&mut self.file)
     }
 }
 
@@ -279,9 +219,12 @@ impl<'a> Rw<'a> for RwFile {
     }
 
     fn rw_close(self) -> Result<Option<DataType<'a>>> {
-        self.file.unlock()?;
         self.file.sync_all()?;
         Ok(None)
+    }
+
+    fn rw_source(&mut self) -> Source {
+        Source::File(&mut self.file)
     }
 }
 
