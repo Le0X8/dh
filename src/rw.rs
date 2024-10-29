@@ -28,9 +28,12 @@ where
     ///
     /// let mut reader = dh::data::read(vec![0, 1, 2, 3, 4, 5, 6, 7]);
     /// let source = reader.source();
-    /// match source {
-    ///     Vec(source) => assert_eq!(source, &mut vec![0, 1, 2, 3, 4, 5, 6, 7]),
-    ///     _ => unreachable!(),
+    /// {
+    ///     use dh::Source::*;
+    ///     match source {
+    ///         Vec(source) => assert_eq!(source, &mut vec![0, 1, 2, 3, 4, 5, 6, 7]),
+    ///         _ => unreachable!(),
+    ///     }
     /// }
     /// ```
     fn rw_source(&mut self) -> Source;
