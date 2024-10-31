@@ -27,7 +27,7 @@ fn w000() {
     let data = "Hello, world!".as_bytes().to_vec();
     let mut writer = data::write(data);
 
-    writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
+    writer.write_utf8_at(7, "rust ").unwrap();
 
     let data = data::close(writer);
     assert_eq!(data, "Hello, rust !".as_bytes());
@@ -38,7 +38,7 @@ fn w001() {
     let data = "Hello, world!".as_bytes().to_vec();
     let mut writer = data::write(data);
 
-    writer.write_utf8_at(7, &"rust world!".to_owned()).unwrap();
+    writer.write_utf8_at(7, "rust world!").unwrap();
 
     let data = data::close(writer);
     assert_eq!(data, "Hello, rust world!".as_bytes());
@@ -48,9 +48,7 @@ fn w001() {
 fn w002() {
     let mut writer = data::write_empty();
 
-    writer
-        .write_utf8_at(0, &"Hello, world!".to_owned())
-        .unwrap();
+    writer.write_utf8_at(0, "Hello, world!").unwrap();
 
     let data = data::close(writer);
     assert_eq!(data, "Hello, world!".as_bytes());
@@ -60,9 +58,7 @@ fn w002() {
 fn w003() {
     let mut writer = data::write_new(13); // better than w002
 
-    writer
-        .write_utf8_at(0, &"Hello, world!".to_owned())
-        .unwrap();
+    writer.write_utf8_at(0, "Hello, world!").unwrap();
 
     let data = data::close(writer);
     assert_eq!(data, "Hello, world!".as_bytes());

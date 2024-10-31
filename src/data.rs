@@ -347,7 +347,7 @@ pub fn write(data: Vec<u8>) -> WData {
 ///
 /// let mut writer = dh::data::write_empty();
 ///
-/// writer.write_utf8_at(0, &"Hello, world!".to_owned()).unwrap();
+/// writer.write_utf8_at(0, "Hello, world!").unwrap();
 ///
 /// let data = dh::data::close(writer); // gets the data back
 /// assert_eq!(data, "Hello, world!".as_bytes());
@@ -368,7 +368,7 @@ pub fn write_empty() -> WData {
 ///
 /// let mut writer = dh::data::write_new(13);
 ///
-/// writer.write_utf8_at(0, &"Hello, world!".to_owned()).unwrap();
+/// writer.write_utf8_at(0, "Hello, world!").unwrap();
 ///
 /// let data = dh::data::close(writer); // gets the data back
 /// assert_eq!(data, "Hello, world!".as_bytes());

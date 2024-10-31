@@ -146,7 +146,7 @@ where
     /// Writes an UTF-8-encoded string at a specific position.
     ///
     /// This executes the [`write_utf8`][Writable::write_utf8] method at `pos` and then returns to the original position.
-    fn write_utf8_at(&mut self, pos: u64, s: &String) -> Result<()> {
+    fn write_utf8_at(&mut self, pos: u64, s: &str) -> Result<()> {
         let pos_before = self.stream_position()?;
         self.to(pos)?;
         self.write_utf8(s)?;
@@ -896,12 +896,12 @@ where
     ///
     /// let mut writer = dh::data::write_new(5);
     ///
-    /// writer.write_utf8(&"Hello".to_string()).unwrap();
+    /// writer.write_utf8("Hello").unwrap();
     ///
     /// let data = dh::data::close(writer);
     /// assert_eq!(data, vec![0x48, 0x65, 0x6c, 0x6c, 0x6f]);
     /// ```
-    fn write_utf8(&mut self, s: &String) -> Result<()> {
+    fn write_utf8(&mut self, s: &str) -> Result<()> {
         self.write_all(s.as_bytes())
     }
 

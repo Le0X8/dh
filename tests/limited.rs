@@ -55,7 +55,7 @@ fn w000() {
     let mut limited = writer.limit(6, 6).unwrap();
 
     limited.jump(1).unwrap();
-    limited.write_utf8(&"rust ".to_string()).unwrap();
+    limited.write_utf8("rust ").unwrap();
 
     assert_eq!(data, "Hello, rust !".as_bytes());
 }

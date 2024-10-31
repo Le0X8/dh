@@ -32,7 +32,7 @@ fn w000() {
     let mut data = "Hello, world!".as_bytes().to_vec();
     let mut writer = data::write_ref(&mut data);
 
-    writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
+    writer.write_utf8_at(7, "rust ").unwrap();
 
     data::close_ref(writer); // close_mut would return the mutable reference
     assert_eq!(data, "Hello, rust !".as_bytes());
@@ -43,7 +43,7 @@ fn w001() {
     let mut data = "Hello, world!".as_bytes().to_vec();
     let mut writer = data::write_ref(&mut data);
 
-    writer.write_utf8_at(7, &"rust ".to_owned()).unwrap();
+    writer.write_utf8_at(7, "rust ").unwrap();
 
     writer.close().unwrap(); // recommended if the data is not used anymore
     assert_eq!(data, "Hello, rust !".as_bytes());
