@@ -1,4 +1,5 @@
 use dh::recommended::*;
+use murmur3::murmur3_32;
 
 #[test]
 fn r000() {
@@ -44,6 +45,23 @@ fn r001() {
     limited.read_u8().unwrap_err();
 
     assert_eq!(reader.pos().unwrap(), 12);
+}
+
+#[test]
+fn r002() {
+    let data = "Hello, world!".as_bytes().to_vec();
+
+    let mut reader = dh::data::read(data);
+
+    let mut limited = reader.limit(0, 5).unwrap();
+
+    let hash = murmur3_32(&mut limited, 0).unwrap();
+    assert_eq!(hash, 316307400);
+
+    let mut reader = limited.unlimit();
+    reader.rewind().unwrap();
+    let hash = murmur3_32(&mut reader, 0).unwrap();
+    assert_eq!(hash, 3224780355);
 }
 
 #[test]

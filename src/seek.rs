@@ -6,26 +6,6 @@ use std::io::{Result, Seek, SeekFrom};
 /// includes any type that implements [`Readable`][crate::Readable],
 /// [`Writable`][crate::Writable] and [`Rw`][crate::Rw] as all these traits require [`Seek`] to be implemented.
 pub trait Seekable: Seek {
-    /// Sets the stream position to the beginning.
-    /// This is the same as calling [`to`][Seekable::to] with `0`.
-    ///
-    /// ### Example
-    ///
-    /// ```rust
-    /// use dh::recommended::*;
-    ///
-    /// let mut writer = dh::data::write_new(2);
-    ///
-    /// writer.write_u8(0x80).unwrap(); // reads the first byte
-    /// assert_eq!(writer.pos().unwrap(), 1);
-    ///
-    /// writer.rewind().unwrap(); // sets the position to the beginning
-    /// assert_eq!(writer.pos().unwrap(), 0);
-    /// ```
-    fn rewind(&mut self) -> Result<u64> {
-        self.seek(SeekFrom::Start(0))
-    }
-
     /// Sets the stream position to the end. It is not recommended to read anything after this because it would result in an EOF error.
     ///
     /// ### Example

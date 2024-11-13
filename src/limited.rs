@@ -24,11 +24,18 @@ impl<'a> Read for RLimited<'a> {
         let start_pos = self.data.pos()?;
         let end_pos = start_pos + buf.len() as u64;
 
-        if start_pos < self.start || end_pos > self.end {
+        if start_pos < self.start {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::UnexpectedEof,
                 "reading out of bounds",
             ));
+        }
+
+        if end_pos > self.end {
+            let read_len = (self.end - start_pos) as usize;
+            #[allow(clippy::unused_io_amount)]
+            self.data.read(&mut buf[..read_len])?;
+            return Ok(read_len);
         }
 
         self.data.read(buf)

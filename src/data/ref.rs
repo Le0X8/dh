@@ -1,9 +1,9 @@
 use crate::{DataType, Readable, Rw, Seekable, Source, Writable};
 use std::io::{Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 
-/// A [`Vec<u8>`] reference reader.
+/// A [`[u8]`] reference reader.
 pub struct RRefData<'a> {
-    data: &'a Vec<u8>,
+    data: &'a [u8],
     pos: usize,
 }
 
@@ -51,17 +51,17 @@ impl<'a> Readable<'a> for RRefData<'a> {
     }
 
     fn close(self) -> Result<Option<DataType<'a>>> {
-        Ok(Some(DataType::VecRef(self.data)))
+        Ok(Some(DataType::Ref(self.data)))
     }
 
     fn source(&mut self) -> Source {
-        Source::VecRef(self.data)
+        Source::Ref(self.data)
     }
 }
 
-/// A [`Vec<u8>`] reference writer.
+/// A [`[u8]`] reference writer.
 pub struct WRefData<'a> {
-    data: &'a mut Vec<u8>,
+    data: &'a mut [u8],
     pos: usize,
 }
 
@@ -113,17 +113,17 @@ impl<'a> Writable<'a> for WRefData<'a> {
     }
 
     fn close(self) -> Result<Option<DataType<'a>>> {
-        Ok(Some(DataType::VecMut(self.data)))
+        Ok(Some(DataType::Mut(self.data)))
     }
 
     fn source(&mut self) -> Source {
-        Source::Vec(self.data)
+        Source::Mut(self.data)
     }
 }
 
-/// A [`Vec<u8>`] reference reader and writer.
+/// A [`[u8]`] reference reader and writer.
 pub struct RwRefData<'a> {
-    data: &'a mut Vec<u8>,
+    data: &'a mut [u8],
     pos: usize,
 }
 
@@ -192,11 +192,11 @@ impl<'a> Readable<'a> for RwRefData<'a> {
     }
 
     fn close(self) -> Result<Option<DataType<'a>>> {
-        Ok(Some(DataType::VecMut(self.data)))
+        Ok(Some(DataType::Mut(self.data)))
     }
 
     fn source(&mut self) -> Source {
-        Source::Vec(self.data)
+        Source::Mut(self.data)
     }
 }
 
@@ -206,11 +206,11 @@ impl<'a> Writable<'a> for RwRefData<'a> {
     }
 
     fn close(self) -> Result<Option<DataType<'a>>> {
-        Ok(Some(DataType::VecMut(self.data)))
+        Ok(Some(DataType::Mut(self.data)))
     }
 
     fn source(&mut self) -> Source {
-        Source::Vec(self.data)
+        Source::Mut(self.data)
     }
 }
 
@@ -220,11 +220,11 @@ impl<'a> Rw<'a> for RwRefData<'a> {
     }
 
     fn rw_close(self) -> Result<Option<DataType<'a>>> {
-        Ok(Some(DataType::VecMut(self.data)))
+        Ok(Some(DataType::Mut(self.data)))
     }
 
     fn rw_source(&mut self) -> Source {
-        Source::Vec(self.data)
+        Source::Mut(self.data)
     }
 }
 
@@ -271,7 +271,7 @@ impl<'a> From<RwRefData<'a>> for ClosableMutData<'a> {
     }
 }
 
-/// Creates a new reader from a [`Vec<u8>`] reference.
+/// Creates a new reader from a [`[u8]`] reference.
 ///
 /// ### Example
 ///
@@ -283,11 +283,11 @@ impl<'a> From<RwRefData<'a>> for ClosableMutData<'a> {
 ///
 /// assert_eq!(reader.read_u8_at(0).unwrap(), 0);
 /// ```
-pub fn read(data: &Vec<u8>) -> RRefData {
+pub fn read(data: &[u8]) -> RRefData {
     RRefData { data, pos: 0 }
 }
 
-/// Creates a new writer from a [`Vec<u8>`] reference.
+/// Creates a new writer from a [`[u8]`] reference.
 ///
 /// ### Example
 /// ```rust
@@ -301,11 +301,11 @@ pub fn read(data: &Vec<u8>) -> RRefData {
 ///
 /// assert_eq!(data, "Hello, Rust!!".as_bytes());
 /// ```
-pub fn write(data: &mut Vec<u8>) -> WRefData {
+pub fn write(data: &mut [u8]) -> WRefData {
     WRefData { data, pos: 0 }
 }
 
-/// Creates a new reader and writer from a [`Vec<u8>`] reference.
+/// Creates a new reader and writer from a [`[u8]`] reference.
 ///
 /// ### Example
 /// ```rust
@@ -319,7 +319,7 @@ pub fn write(data: &mut Vec<u8>) -> WRefData {
 ///
 /// rw.rw_close().unwrap(); // removes the mutable reference
 /// ```
-pub fn rw(data: &mut Vec<u8>) -> RwRefData {
+pub fn rw(data: &mut [u8]) -> RwRefData {
     RwRefData { data, pos: 0 }
 }
 
@@ -342,15 +342,15 @@ pub fn rw(data: &mut Vec<u8>) -> RwRefData {
 ///
 /// assert_eq!(dh::data::close_ref(reader), &data);
 /// ```
-pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> &'a Vec<u8> {
+pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> &'a [u8] {
     // these unwraps are safe because the data is always returned
     match match closable.into() {
         ClosableRefData::R(r) => r.close().unwrap().unwrap(),
         ClosableRefData::W(w) => w.close().unwrap().unwrap(),
         ClosableRefData::Rw(rw) => rw.rw_close().unwrap().unwrap(),
     } {
-        DataType::VecRef(data) => data,
-        DataType::VecMut(data) => data,
+        DataType::Ref(data) => data,
+        DataType::Mut(data) => data,
         _ => unreachable!(),
     }
 }
@@ -374,13 +374,13 @@ pub fn close<'a, T: Into<ClosableRefData<'a>>>(closable: T) -> &'a Vec<u8> {
 ///
 /// assert_eq!(data_ref, &mut "Hello, Rust!!".as_bytes().to_vec());
 /// ```
-pub fn close_mut<'a, T: Into<ClosableMutData<'a>>>(closable: T) -> &'a mut Vec<u8> {
+pub fn close_mut<'a, T: Into<ClosableMutData<'a>>>(closable: T) -> &'a mut [u8] {
     // these unwraps are safe because the data is always returned
     match match closable.into() {
         ClosableMutData::W(w) => w.close().unwrap().unwrap(),
         ClosableMutData::Rw(rw) => rw.rw_close().unwrap().unwrap(),
     } {
-        DataType::VecMut(data) => data,
+        DataType::Mut(data) => data,
         _ => unreachable!(),
     }
 }

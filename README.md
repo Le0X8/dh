@@ -51,7 +51,7 @@ use dh::recommended::*;
 fn main() {
     let mut file = dh::file::open_r("data.txt").unwrap();
     let size = file.size().unwrap();
-    assert_eq!(file.read_utf8(size), "Hello, world!\n");
+    assert_eq!(file.read_utf8(size).unwrap(), "Hello, world!\n");
 }
 ```
 
@@ -62,8 +62,8 @@ use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_w("data.txt").unwrap();
-    file.write_utf8_at("Hello, world!\n", 0);
-    file.close(); // optional, but recommended
+    file.write_utf8_at("Hello, world!\n", 0).unwrap();
+    file.close().unwrap(); // optional, but recommended
 }
 ```
 
@@ -74,9 +74,10 @@ use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_rw("data.txt").unwrap();
-    file.write_utf8_at("Hello, world!\n", 0);
-    file.rewind();
-    assert_eq!(file.read_utf8(file.size()), "Hello, world!\n");
+    file.write_utf8_at("Hello, world!\n", 0).unwrap();
+    file.rewind().unwrap();
+    let size = file.size().unwrap();
+    assert_eq!(file.read_utf8(size).unwrap(), "Hello, world!\n");
 }
 ```
 
@@ -92,7 +93,7 @@ use dh::recommended::*;
 fn main() {
     let mut data = vec![31u8; 1];
     let mut rw = dh::data::read_ref(&data);
-    assert_eq!(rw.read_u8(), 31);
+    assert_eq!(rw.read_u8().unwrap(), 31);
 }
 ```
 
@@ -104,9 +105,9 @@ use dh::recommended::*;
 fn main() {
     let mut data = vec![0u8; 1];
     let mut rw = dh::data::rw_ref(&mut data);
-    rw.write_u8(31);
-    rw.rewind();
-    assert_eq!(rw.read_u8(), 31);
+    rw.write_u8(31).unwrap();
+    rw.rewind().unwrap();
+    assert_eq!(rw.read_u8().unwrap(), 31);
 }
 ```
 
@@ -118,11 +119,11 @@ use dh::recommended::*;
 fn main() {
     let data = vec![0u8; 1];
     let mut rw = dh::data::rw(data);
-    rw.write_u8(31);
-    rw.rewind();
-    assert_eq!(rw.read_u8(), 31);
+    rw.write_u8(31).unwrap();
+    rw.rewind().unwrap();
+    assert_eq!(rw.read_u8().unwrap(), 31);
 
-    let data = dh::data::close(rw);
+    let data = dh::data::close(rw).unwrap();
     assert_eq!(data, vec![31]);
 }
 ```
@@ -152,8 +153,8 @@ use dh::recommended::*;
 
 fn main() {
     let mut file = dh::file::open_r("data.txt").unwrap();
-    let mut limited = file.limit(0, 5);
-    assert_eq!(limited.read_utf8(5), "Hello");
+    let mut limited = file.limit(0, 5).unwrap();
+    assert_eq!(limited.read_utf8(5).unwrap(), "Hello");
 }
 ```
 
