@@ -26,10 +26,14 @@
 ### Planned features
 
 - Floating point number support
-- Temporary file storage for large data
 - Zero-cost cloning
 - Zero-cost subarray clones
 - Reading and writing of data that does not fill a whole byte
+
+<!--
+|- Temporary file storage for large data
+|-> use `tempfile` crate
+-->
 
 ## Installation
 
@@ -127,24 +131,6 @@ fn main() {
     assert_eq!(data, vec![31]);
 }
 ```
-
-<!--
-
-### Read and write u8 vectors and temporarily store them in a file
-
-```rust
-use dh::{self, Readable, Writable};
-
-fn main() {
-    let data = vec![0u8; 1];
-    let mut rw = dh::temp::rw(&mut data); // vector will be stored in a temporary file, reducing memory load
-    rw.write_u8(31);
-    rw.rewind();
-    assert_eq!(rw.read_u8(), 31);
-}
-```
-
--->
 
 ### Limit readable space
 
