@@ -1086,6 +1086,20 @@ pub trait Readable<'a>: Read + Seekable {
         Ok(self.read_uxbe(2)? as u16)
     }
 
+    /// Reads an unsigned 16-bit integer in little-endian or big-endian byte order at the current position.
+    ///
+    /// If `big_endian` is `true`, this executes the [`read_u16be`][Readable::read_u16be] method.
+    /// Otherwise, this executes the [`read_u16le`][Readable::read_u16le] method.
+    fn read_u16(&mut self, big_endian: bool) -> Result<u16> {
+        if big_endian {
+            self.read_u16be()
+        } else {
+            self.read_u16le()
+        }
+    }
+
+    // TODO: add read methods without endianess for all other data types
+
     /// Reads an unsigned 32-bit integer in little-endian byte order at the current position.
     ///
     /// ### Example
@@ -1116,6 +1130,18 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```
     fn read_u32be(&mut self) -> Result<u32> {
         Ok(self.read_uxbe(4)? as u32)
+    }
+
+    /// Reads an unsigned 32-bit integer in little-endian or big-endian byte order at the current position.
+    ///
+    /// If `big_endian` is `true`, this executes the [`read_u32be`][Readable::read_u32be] method.
+    /// Otherwise, this executes the [`read_u32le`][Readable::read_u32le] method.
+    fn read_u32(&mut self, big_endian: bool) -> Result<u32> {
+        if big_endian {
+            self.read_u32be()
+        } else {
+            self.read_u32le()
+        }
     }
 
     /// Reads an unsigned 64-bit integer in little-endian byte order at the current position.
@@ -1150,6 +1176,18 @@ pub trait Readable<'a>: Read + Seekable {
         Ok(self.read_uxbe(8)? as u64)
     }
 
+    /// Reads an unsigned 64-bit integer in little-endian or big-endian byte order at the current position.
+    ///
+    /// If `big_endian` is `true`, this executes the [`read_u64be`][Readable::read_u64be] method.
+    /// Otherwise, this executes the [`read_u64le`][Readable::read_u64le] method.
+    fn read_u64(&mut self, big_endian: bool) -> Result<u64> {
+        if big_endian {
+            self.read_u64be()
+        } else {
+            self.read_u64le()
+        }
+    }
+
     /// Reads an unsigned 128-bit integer in little-endian byte order at the current position.
     ///
     /// ### Example
@@ -1182,6 +1220,18 @@ pub trait Readable<'a>: Read + Seekable {
     /// ```
     fn read_u128be(&mut self) -> Result<u128> {
         self.read_uxbe(16)
+    }
+
+    /// Reads an unsigned 128-bit integer in little-endian or big-endian byte order at the current position.
+    ///
+    /// If `big_endian` is `true`, this executes the [`read_u128be`][Readable::read_u128be] method.
+    /// Otherwise, this executes the [`read_u128le`][Readable::read_u128le] method.
+    fn read_u128(&mut self, big_endian: bool) -> Result<u128> {
+        if big_endian {
+            self.read_u128be()
+        } else {
+            self.read_u128le()
+        }
     }
 
     /// Reads an unsigned 7-bit variable-length integer at the current position.
