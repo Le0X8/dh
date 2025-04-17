@@ -1,4 +1,7 @@
-use super::{auto_impl::auto_impl, val::read_dynamic_typed};
+use super::{
+    auto_impl::{auto_impl, auto_impl_nofns},
+    val::read_dynamic_typed,
+};
 use crate::{Primitive, Result};
 use std::io::Read;
 

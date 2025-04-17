@@ -111,7 +111,7 @@ fn read_str() {
     let data = [0x41u8, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48];
     let mut cursor = Cursor::new(data);
 
-    let val: String = cursor.read_str(4).unwrap();
+    let val = cursor.read_str(4).unwrap();
     assert_eq!(val, String::from("ABCD"));
 
     // overflow
