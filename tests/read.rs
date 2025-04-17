@@ -1,4 +1,4 @@
-use dh::{ReadVal, Result};
+use dh::{Endianess, ReadVal, Result};
 use std::io::{Cursor, Read};
 
 #[test]
@@ -74,11 +74,11 @@ fn read_u16_le() {
     let data = [0x12u8, 0x34, 0x56, 0x78];
     let mut cursor = Cursor::new(data);
 
-    assert_eq!(cursor.read_u16_le().unwrap(), 0x3412);
-    assert_eq!(cursor.read_u16_le().unwrap(), 0x7856);
+    assert_eq!(cursor.read_u16(Endianess::Little).unwrap(), 0x3412);
+    assert_eq!(cursor.read_u16(Endianess::Little).unwrap(), 0x7856);
 
     // overflow
-    let val = cursor.read_u16_le();
+    let val = cursor.read_u16(Endianess::Little);
     assert!(val.is_err());
 }
 
@@ -238,5 +238,31 @@ fn read_u128_le() {
 
     // overflow
     let val = cursor.read_u128_le();
+    assert!(val.is_err());
+}
+
+#[test]
+fn read_vec() {
+    let data = [0u8, 1, 2, 3, 4, 5, 6, 7];
+    let mut cursor = Cursor::new(data);
+
+    let val: Vec<u8> = cursor.read_vec(4).unwrap();
+    assert_eq!(val, vec![0, 1, 2, 3]);
+
+    // overflow
+    let val: Result<Vec<u8>> = cursor.read_vec(10);
+    assert!(val.is_err());
+}
+
+#[test]
+fn read_str() {
+    let data = [0x41u8, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48];
+    let mut cursor = Cursor::new(data);
+
+    let val: String = cursor.read_str(4).unwrap();
+    assert_eq!(val, String::from("ABCD"));
+
+    // overflow
+    let val: Result<String> = cursor.read_str(10);
     assert!(val.is_err());
 }
