@@ -1,5 +1,8 @@
-use crate::{Endianess, Primitive, Result};
-use std::io::Read;
+use crate::{Endianess, Primitive, Result, WriteSeek, WriteVal, WriteValAt};
+use std::{
+    cmp::min,
+    io::{Read, Write},
+};
 
 macro_rules! read_primitive {
     ($fn_name:ident, $read_fn_name:ident) => {
@@ -144,6 +147,54 @@ pub trait ReadVal: Read {
         let mut buf = vec![0; len];
         self.read_exact(&mut buf)?;
         T::from_bytes(buf)
+    }
+
+    fn copy(&mut self, len: usize, mut target: &mut dyn Write) -> Result<()> {
+        target.write_vec(self.read_vec(len)?)
+    }
+
+    fn copy_to(
+        &mut self,
+        len: usize,
+        targetpos: usize,
+        mut target: &mut dyn WriteSeek,
+    ) -> Result<()> {
+        target.write_vec_at(targetpos, self.read_vec(len)?)
+    }
+
+    fn copy_chunked(
+        &mut self,
+        len: usize,
+        mut target: &mut dyn Write,
+        chunk_size: usize,
+    ) -> Result<()> {
+        let mut remaining = len;
+
+        while remaining > 0 {
+            let to_read = min(remaining, chunk_size);
+            target.write_vec(self.read_vec(to_read)?)?;
+            remaining -= to_read;
+        }
+
+        Ok(())
+    }
+
+    fn copy_chunked_to(
+        &mut self,
+        len: usize,
+        targetpos: usize,
+        mut target: &mut dyn WriteSeek,
+        chunk_size: usize,
+    ) -> Result<()> {
+        let mut remaining = len;
+
+        while remaining > 0 {
+            let to_read = min(remaining, chunk_size);
+            target.write_vec_at(targetpos + len - remaining, self.read_vec(to_read)?)?;
+            remaining -= to_read;
+        }
+
+        Ok(())
     }
 }
 
