@@ -51,7 +51,7 @@ macro_rules! read_dynamic_typed {
         fn $fn_name(&mut self, pos: usize, len: usize) -> Result<$return_type> {
             let pos_before = self.stream_position()?;
             self.seek(SeekPos(pos as u64))?;
-            let result = self.read_dynamic(len);
+            let result = self.read_dynamic_at(len);
             self.seek(SeekPos(pos_before))?;
             result
         }
@@ -62,7 +62,7 @@ pub(super) use read_dynamic_typed;
 pub(super) use read_primitive;
 pub(super) use read_primitive_typed;
 
-/// Extension trait for `Read` that provides methods for reading supported value types.
+/// Extension trait for `Read + Seek` that provides methods for reading supported value types.
 ///
 /// **Note:** do not borrow this as `&mut dyn ReadValAt`, as this would not compile. Use `&mut dyn dh::ReadSeek` instead.
 pub trait ReadValAt: Read + Seek {
@@ -146,8 +146,8 @@ pub trait ReadValAt: Read + Seek {
 
     /// Reads a dynamic value from the reader.
     ///
-    /// It's recommended to use the typed wrappers like `read_vec` instead of this method for cleaner code.
-    fn read_dynamic<T: crate::Dynamic>(&mut self, len: usize) -> Result<T> {
+    /// It's recommended to use the typed wrappers like `read_vec_at` instead of this method for cleaner code.
+    fn read_dynamic_at<T: crate::Dynamic>(&mut self, len: usize) -> Result<T> {
         let mut buf = vec![0; len];
         self.read_exact(&mut buf)?;
         T::from_bytes(buf)
