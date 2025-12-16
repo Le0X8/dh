@@ -61,14 +61,12 @@ macro_rules! read_dynamic_typed {
     };
 }
 
-pub(super) use read_dynamic_typed;
-pub(super) use read_primitive;
-pub(super) use read_primitive_typed;
-
 /// Extension trait for `Read + Seek` that provides methods for reading supported value types.
 ///
 /// **Note:** do not borrow this as `&mut dyn ReadValAt`, as this would not compile. Use `&mut dyn dh::ReadSeek` instead.
 pub trait ReadValAt: Read + Seek {
+    // TODO: Read variable-length integers at specific positions
+
     read_primitive_typed!(read_u8_at, u8, read_ne_at);
 
     read_primitive_typed!(read_u16_at, u16);

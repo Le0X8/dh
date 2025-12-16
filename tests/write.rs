@@ -33,6 +33,111 @@ fn write_primitive() {
 }
 
 #[test]
+#[cfg(feature = "vli")]
+fn write_vu8() {
+    let mut cursor = Cursor::new([0xffu8; 4]);
+
+    cursor.write_vu8(0x7f << 14 | 0x7f << 7 | 0xff).unwrap();
+    assert_eq!(cursor.get_ref(), &[0xff, 0xff, 0x7f, 0xff]);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn write_vu16_le() {
+    let mut cursor = Cursor::new([0xffu8; 8]);
+
+    cursor
+        .write_vu16_le(0x7fff << 30 | 0x7fff << 15 | 0xffff)
+        .unwrap();
+    assert_eq!(
+        cursor.get_ref(),
+        &[0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff]
+    );
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn write_vu16_be() {
+    let mut cursor = Cursor::new([0xffu8; 8]);
+
+    cursor
+        .write_vu16_be(0x7fff << 30 | 0x7fff << 15 | 0xffff)
+        .unwrap();
+    assert_eq!(
+        cursor.get_ref(),
+        &[0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff]
+    );
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn write_vu32_le() {
+    let mut cursor = Cursor::new([0xffu8; 16]);
+
+    cursor
+        .write_vu32_le(0x7fffffff << 62 | 0x7fffffff << 31 | 0xffffffff)
+        .unwrap();
+    assert_eq!(
+        cursor.get_ref(),
+        &[
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff,
+            0xff, 0xff,
+        ]
+    );
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn write_vu32_be() {
+    let mut cursor = Cursor::new([0xffu8; 16]);
+
+    cursor
+        .write_vu32_be(0x7fffffff << 62 | 0x7fffffff << 31 | 0xffffffff)
+        .unwrap();
+    assert_eq!(
+        cursor.get_ref(),
+        &[
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff,
+        ]
+    );
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn write_vu64_le() {
+    let mut cursor = Cursor::new([0xffu8; 24]);
+
+    cursor
+        .write_vu64_le(0x7fffffffffffffff << 63 | 0xffffffffffffffff)
+        .unwrap();
+    assert_eq!(
+        cursor.get_ref(),
+        &[
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        ]
+    );
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn write_vu64_be() {
+    let mut cursor = Cursor::new([0xffu8; 24]);
+
+    cursor
+        .write_vu64_be(0x7fffffffffffffff << 63 | 0xffffffffffffffff)
+        .unwrap();
+    assert_eq!(
+        cursor.get_ref(),
+        &[
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        ]
+    );
+}
+
+#[test]
 fn write_u8() {
     let mut cursor = Cursor::new([0u8; 4]);
 

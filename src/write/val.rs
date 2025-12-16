@@ -1,3 +1,5 @@
+#[cfg(feature = "vli")]
+use crate::variable;
 use crate::{Endianess, Primitive, Result};
 use std::io::Write;
 
@@ -49,14 +51,34 @@ macro_rules! write_dynamic_typed {
     };
 }
 
-pub(super) use write_dynamic_typed;
-pub(super) use write_primitive;
-pub(super) use write_primitive_typed;
+macro_rules! write_variable {
+    ($fn_name:ident) => {
+        /// Writes a variable-length integer to the reader.
+        #[cfg(feature = "vli")]
+        fn $fn_name(&mut self, value: u128) -> Result<()> {
+            variable::$fn_name(self, value)
+        }
+    };
+}
 
 /// Extension trait for `Write` that provides methods for writeing supported value types.
 ///
 /// **Note:** do not borrow this as `&mut dyn WriteVal`, as this would not compile. Use `&mut dyn Write` instead.
 pub trait WriteVal: Write {
+    write_variable!(write_vu8);
+    write_variable!(write_vu16_ne);
+    write_variable!(write_vu16_le);
+    write_variable!(write_vu16_be);
+    write_variable!(write_vu32_ne);
+    write_variable!(write_vu32_le);
+    write_variable!(write_vu32_be);
+    write_variable!(write_vu64_ne);
+    write_variable!(write_vu64_le);
+    write_variable!(write_vu64_be);
+    write_variable!(write_vu128_ne);
+    write_variable!(write_vu128_le);
+    write_variable!(write_vu128_be);
+
     write_primitive_typed!(write_u8, u8, write_ne);
 
     write_primitive_typed!(write_u16, u16);

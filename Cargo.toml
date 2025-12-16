@@ -1,6 +1,6 @@
 [package]
 name = "dh"
-version = "0.9.0"
+version = "0.10.0"
 edition = "2024"
 description = "Data handling in Rust, made easy."
 license = "MIT"
@@ -10,3 +10,6 @@ authors = [ "Leonard Lesinski <84378319+Le0X8@users.noreply.github.com>" ]
 readme = "README.md"
 keywords = [ "data", "read", "write", "rw" ]
 categories = [ "data-structures", "encoding", "parsing" ]
+
+[features]
+vli = []

@@ -37,6 +37,91 @@ fn read_primitive() {
 }
 
 #[test]
+#[cfg(feature = "vli")]
+fn read_vu8() {
+    let data = [0xff, 0xff, 0x7f, 0xff];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu8().unwrap();
+    assert_eq!(val, 0x7f << 14 | 0x7f << 7 | 0xff);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn read_vu16_le() {
+    let data = [0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu16_le().unwrap();
+    assert_eq!(val, 0x7fff << 30 | 0x7fff << 15 | 0xffff);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn read_vu16_be() {
+    let data = [0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu16_be().unwrap();
+    assert_eq!(val, 0x7fff << 30 | 0x7fff << 15 | 0xffff);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn read_vu32_le() {
+    let data = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff,
+        0xff,
+    ];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu32_le().unwrap();
+    assert_eq!(val, 0x7fffffff << 62 | 0x7fffffff << 31 | 0xffffffff);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn read_vu32_be() {
+    let data = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff,
+    ];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu32_be().unwrap();
+    assert_eq!(val, 0x7fffffff << 62 | 0x7fffffff << 31 | 0xffffffff);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn read_vu64_le() {
+    let data = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    ];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu64_le().unwrap();
+    assert_eq!(val, 0x7fffffffffffffff << 63 | 0xffffffffffffffff);
+}
+
+#[test]
+#[cfg(feature = "vli")]
+fn read_vu64_be() {
+    let data = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    ];
+    let mut cursor = Cursor::new(data);
+
+    let val = cursor.read_vu64_be().unwrap();
+    assert_eq!(val, 0x7fffffffffffffff << 63 | 0xffffffffffffffff);
+}
+
+// vu128 will work too as they are theoretically the same, but testing them would break the 128 bit limit.
+// DON'T USE VU128, IT'S JUST FOR COMPLETENESS SAKE. THERE IS NO PRACTICAL USE CASE FOR IT.
+
+#[test]
 fn read_u8() {
     let data = [0u8, 1, 2, 3];
     let mut cursor = Cursor::new(data);

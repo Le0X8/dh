@@ -1,3 +1,5 @@
+#[cfg(feature = "vli")]
+use crate::variable;
 use crate::{Endianess, Primitive, Result, WriteSeek, WriteVal, WriteValAt};
 use std::{
     cmp::min,
@@ -54,14 +56,34 @@ macro_rules! read_dynamic_typed {
     };
 }
 
-pub(super) use read_dynamic_typed;
-pub(super) use read_primitive;
-pub(super) use read_primitive_typed;
+macro_rules! read_variable {
+    ($fn_name:ident) => {
+        /// Reads a variable-length integer from the reader.
+        #[cfg(feature = "vli")]
+        fn $fn_name(&mut self) -> Result<u128> {
+            variable::$fn_name(self)
+        }
+    };
+}
 
 /// Extension trait for `Read` that provides methods for reading supported value types.
 ///
 /// **Note:** do not borrow this as `&mut dyn ReadVal`, as this would not compile. Use `&mut dyn Read` instead.
 pub trait ReadVal: Read {
+    read_variable!(read_vu8);
+    read_variable!(read_vu16_ne);
+    read_variable!(read_vu16_le);
+    read_variable!(read_vu16_be);
+    read_variable!(read_vu32_ne);
+    read_variable!(read_vu32_le);
+    read_variable!(read_vu32_be);
+    read_variable!(read_vu64_ne);
+    read_variable!(read_vu64_le);
+    read_variable!(read_vu64_be);
+    read_variable!(read_vu128_ne);
+    read_variable!(read_vu128_le);
+    read_variable!(read_vu128_be);
+
     read_primitive_typed!(read_u8, u8, read_ne);
 
     read_primitive_typed!(read_u16, u16);

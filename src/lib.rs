@@ -3,6 +3,8 @@ mod error;
 mod primitive;
 mod read;
 mod types;
+#[cfg(feature = "vli")]
+mod variable;
 mod write;
 
 pub use dynamic::Dynamic;
