@@ -64,8 +64,6 @@ macro_rules! write_dynamic_typed {
 }
 
 /// Extension trait for `Write + Seek` that provides methods for writeing supported value types.
-///
-/// **Note:** do not borrow this as `&mut dyn WriteValAt`, as this would not compile. Use `&mut dyn dh::WriteSeek` instead.
 pub trait WriteValAt: Write + Seek {
     write_primitive_typed!(write_u8_at, u8, write_ne_at);
 

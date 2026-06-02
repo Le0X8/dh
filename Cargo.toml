@@ -1,15 +1,15 @@
 [package]
 name = "dh"
-version = "0.10.0"
+version = "0.11.0"
 edition = "2024"
 description = "Data handling in Rust, made easy."
 license = "MIT"
 repository = "https://github.com/Le0X8/dh"
 documentation = "https://docs.rs/dh"
-authors = [ "Leonard Lesinski <84378319+Le0X8@users.noreply.github.com>" ]
+authors = ["Leonard Lesinski <84378319+Le0X8@users.noreply.github.com>"]
 readme = "README.md"
-keywords = [ "data", "read", "write", "rw" ]
-categories = [ "data-structures", "encoding", "parsing" ]
+keywords = ["data", "read", "write", "rw"]
+categories = ["data-structures", "encoding", "parsing"]
 
 [features]
 vli = []

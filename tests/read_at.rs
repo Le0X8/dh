@@ -1,18 +1,5 @@
-use dh::{Endianess, ReadSeek, ReadVal, ReadValAt, Result};
+use dh::{Endianess, ReadVal, ReadValAt, Result};
 use std::io::Cursor;
-
-#[test]
-fn read_at_borrowing() {
-    let data = [0u8, 1, 2, 3];
-    let mut cursor = Cursor::new(data);
-
-    // this just needs to compile
-    let mut borrowed: &mut dyn ReadSeek = &mut cursor;
-    assert_eq!(borrowed.read_u8().unwrap(), 0);
-    assert_eq!(borrowed.read_u8().unwrap(), 1);
-    assert_eq!(cursor.read_u8_at(2).unwrap(), 2);
-    assert_eq!(cursor.read_u8_at(3).unwrap(), 3);
-}
 
 #[test]
 fn read_at_primitive() {

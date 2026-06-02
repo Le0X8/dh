@@ -1,20 +1,5 @@
-use dh::{Endianess::Little, WriteSeek, WriteVal, WriteValAt};
+use dh::{Endianess::Little, WriteVal, WriteValAt};
 use std::io::Cursor;
-
-#[test]
-fn write_at_borrowing() {
-    let mut cursor = Cursor::new([0u8; 4]);
-
-    // this just needs to compile
-    let mut borrowed: &mut dyn WriteSeek = &mut cursor;
-
-    borrowed.write_u8(0).unwrap();
-    borrowed.write_u8(1).unwrap();
-    borrowed.write_u8_at(2, 2).unwrap();
-    borrowed.write_u8_at(3, 3).unwrap();
-
-    assert_eq!(cursor.get_ref(), &[0, 1, 2, 3]);
-}
 
 #[test]
 fn write_at_primitive() {
