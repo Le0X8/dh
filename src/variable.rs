@@ -5,9 +5,11 @@ macro_rules! rw_unsigned {
     ($read_fn_name:ident, $read_fn:ident, $write_fn_name:ident, $write_fn:ident, $bits:literal, $lower_bits:literal, $highest_bit:literal) => {
         pub fn $read_fn_name<T: Read + ?Sized>(mut reader: &mut T) -> Result<u128> {
             let mut value = 0;
+            let mut shift = 0;
             loop {
                 let chunk = reader.$read_fn()?;
-                value = (value << $bits) | (chunk as u128 & $lower_bits);
+                value |= (chunk as u128 & $lower_bits) << shift;
+                shift += $bits;
                 if chunk & $highest_bit == 0 {
                     break;
                 }
