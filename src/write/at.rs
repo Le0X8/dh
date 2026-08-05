@@ -151,4 +151,4 @@ pub trait WriteValAt: Write + Seek {
     }
 }
 
-impl<T: Write + Seek> WriteValAt for T {}
+impl<T: Write + Seek + ?Sized> WriteValAt for T {}

@@ -165,4 +165,4 @@ pub trait WriteVal: Write {
     }
 }
 
-impl<T: Write> WriteVal for T {}
+impl<T: Write + ?Sized> WriteVal for T {}

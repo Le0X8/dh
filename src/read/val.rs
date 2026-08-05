@@ -189,4 +189,4 @@ pub trait ReadVal: Read {
     }
 }
 
-impl<T: Read> ReadVal for T {}
+impl<T: Read + ?Sized> ReadVal for T {}

@@ -177,4 +177,4 @@ pub trait ReadValAt: Read + Seek {
     }
 }
 
-impl<T: Read + Seek> ReadValAt for T {}
+impl<T: Read + Seek + ?Sized> ReadValAt for T {}
