@@ -18,8 +18,9 @@
 - Read and write files in streams
 - Read and write u8 vectors
 - std::io::Read and std::io::Write implementations for `ReadVal` and `WriteVal` (happens automatically as they extend these traits)
-- Copying data from `ReadVal` to `Write` (chunked and all at once if you want)
+- Copying data from `ReadVal` to `Write`
 - Floating point number support
+- Variable-length integers (`vli` crate feature)
 
 ### Planned features
 
