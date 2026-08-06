@@ -6,7 +6,7 @@ fn write_borrowing() {
     let mut cursor = Cursor::new([0u8; 4]);
 
     // this just needs to compile
-    let mut borrowed: &mut dyn Write = &mut cursor;
+    let borrowed: &mut dyn Write = &mut cursor;
 
     borrowed.write_u8(0).unwrap();
     borrowed.write_u8(1).unwrap();
@@ -20,15 +20,15 @@ fn write_borrowing() {
 fn write_primitive() {
     let mut cursor = Cursor::new([0u8; 8]);
 
-    cursor.write_ne(0u8).unwrap();
-    cursor.write_ne([1u8, 2, 3]).unwrap();
-    cursor.write_be(0x04_05u16).unwrap();
-    cursor.write_le(0x07_06u16).unwrap();
+    cursor.write_auto_ne(0u8).unwrap();
+    cursor.write_auto_ne([1u8, 2, 3]).unwrap();
+    cursor.write_auto_be(0x04_05u16).unwrap();
+    cursor.write_auto_le(0x07_06u16).unwrap();
 
     assert_eq!(cursor.get_ref(), &[0, 1, 2, 3, 4, 5, 6, 7]);
 
     // overflow
-    let val = cursor.write_ne(0u8);
+    let val = cursor.write_auto_ne(0u8);
     assert!(val.is_err());
 }
 

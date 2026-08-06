@@ -5,16 +5,16 @@ use std::io::Cursor;
 fn write_at_primitive() {
     let mut cursor = Cursor::new([0u8; 8]);
 
-    cursor.write_ne_at(0, 0u8).unwrap();
-    cursor.write_ne([0u8, 1, 2]).unwrap();
-    cursor.write_be(3u8).unwrap();
-    cursor.write_be_at(4, 0x04_05u16).unwrap();
-    cursor.write_le_at(6, 0x07_06u16).unwrap();
+    cursor.write_auto_ne_at(0, 0u8).unwrap();
+    cursor.write_auto_ne([0u8, 1, 2]).unwrap();
+    cursor.write_auto_be(3u8).unwrap();
+    cursor.write_auto_be_at(4, 0x04_05u16).unwrap();
+    cursor.write_auto_le_at(6, 0x07_06u16).unwrap();
 
     assert_eq!(cursor.get_ref(), &[0, 1, 2, 3, 4, 5, 6, 7]);
 
     // overflow
-    let val = cursor.write_ne_at(8, 0u8);
+    let val = cursor.write_auto_ne_at(8, 0u8);
     assert!(val.is_err());
 }
 

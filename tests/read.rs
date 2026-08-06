@@ -1,5 +1,5 @@
-use dh::{Endianess, ReadVal, Result};
-use std::io::{Cursor, Read};
+use dh::{Endianess, ReadVal};
+use std::io::{Cursor, Read, Result};
 
 #[test]
 fn read_borrowing() {
@@ -7,7 +7,7 @@ fn read_borrowing() {
     let mut cursor = Cursor::new(data);
 
     // this just needs to compile
-    let mut borrowed: &mut dyn Read = &mut cursor;
+    let borrowed: &mut dyn Read = &mut cursor;
     assert_eq!(borrowed.read_u8().unwrap(), 0);
     assert_eq!(borrowed.read_u8().unwrap(), 1);
     assert_eq!(cursor.read_u8().unwrap(), 2);
@@ -19,20 +19,20 @@ fn read_primitive() {
     let data = [0u8, 1, 2, 3, 4, 5, 6, 7];
     let mut cursor = Cursor::new(data);
 
-    let val: u8 = cursor.read_ne().unwrap();
+    let val: u8 = cursor.read_auto_ne().unwrap();
     assert_eq!(val, 0);
 
-    let val: [u8; 3] = cursor.read_ne().unwrap();
+    let val: [u8; 3] = cursor.read_auto_ne().unwrap();
     assert_eq!(val, [1, 2, 3]);
 
-    let val: u16 = cursor.read_be().unwrap();
+    let val: u16 = cursor.read_auto_be().unwrap();
     assert_eq!(val, 0x04_05);
 
-    let val: u16 = cursor.read_le().unwrap();
+    let val: u16 = cursor.read_auto_le().unwrap();
     assert_eq!(val, 0x07_06);
 
     // overflow
-    let val: Result<u8> = cursor.read_ne();
+    let val: Result<u8> = cursor.read_auto_ne();
     assert!(val.is_err());
 }
 

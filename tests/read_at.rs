@@ -1,30 +1,30 @@
-use dh::{Endianess, ReadVal, ReadValAt, Result};
-use std::io::Cursor;
+use dh::{Endianess, ReadVal, ReadValAt};
+use std::io::{Cursor, Result};
 
 #[test]
 fn read_at_primitive() {
     let data = [0u8, 1, 2, 3, 4, 5, 6, 7];
     let mut cursor = Cursor::new(data);
 
-    let val: u8 = cursor.read_ne_at(0).unwrap();
+    let val: u8 = cursor.read_auto_ne_at(0).unwrap();
     assert_eq!(val, 0);
 
-    let val: [u8; 3] = cursor.read_ne().unwrap();
+    let val: [u8; 3] = cursor.read_auto_ne().unwrap();
     assert_eq!(val, [0, 1, 2]);
 
-    let val: u16 = cursor.read_be_at(4).unwrap();
+    let val: u16 = cursor.read_auto_be_at(4).unwrap();
     assert_eq!(val, 0x04_05);
 
-    let val: u16 = cursor.read_le().unwrap();
+    let val: u16 = cursor.read_auto_le().unwrap();
     assert_eq!(val, 0x04_03);
 
     // position out of bounds
-    let val: Result<u8> = cursor.read_ne_at(8);
+    let val: Result<u8> = cursor.read_auto_ne_at(8);
     assert!(val.is_err());
 
     // position out of bounds
     cursor.set_position(8);
-    let val: Result<u8> = cursor.read_ne();
+    let val: Result<u8> = cursor.read_auto_ne();
     assert!(val.is_err());
 }
 
