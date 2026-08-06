@@ -5,7 +5,7 @@ mod error;
 mod primitive;
 mod read;
 mod types;
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 #[cfg_attr(docsrs, doc(cfg(feature = "vli")))]
 mod variable;
 mod write;

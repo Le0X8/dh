@@ -1,4 +1,4 @@
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 use crate::variable;
 use crate::{
     Endianess,
@@ -58,7 +58,7 @@ macro_rules! write_dynamic_typed {
 macro_rules! write_variable {
     ($fn_name:ident) => {
         /// Writes a variable-length integer to the reader.
-        #[cfg(feature = "vli")]
+        #[cfg(any(feature = "vli", doc))]
         #[cfg_attr(docsrs, doc(cfg(feature = "vli")))]
         fn $fn_name(&mut self, value: u128) -> Result<()> {
             variable::$fn_name(self, value)

@@ -33,7 +33,7 @@ fn write_primitive() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu8() {
     let mut cursor = Cursor::new([0xffu8; 4]);
 
@@ -42,7 +42,7 @@ fn write_vu8() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu16_le() {
     let mut cursor = Cursor::new([0xffu8; 8]);
 
@@ -56,7 +56,7 @@ fn write_vu16_le() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu16_be() {
     let mut cursor = Cursor::new([0xffu8; 8]);
 
@@ -70,7 +70,7 @@ fn write_vu16_be() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu32_le() {
     let mut cursor = Cursor::new([0xffu8; 16]);
 
@@ -87,7 +87,7 @@ fn write_vu32_le() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu32_be() {
     let mut cursor = Cursor::new([0xffu8; 16]);
 
@@ -104,7 +104,7 @@ fn write_vu32_be() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu64_le() {
     let mut cursor = Cursor::new([0xffu8; 24]);
 
@@ -121,7 +121,7 @@ fn write_vu64_le() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn write_vu64_be() {
     let mut cursor = Cursor::new([0xffu8; 24]);
 

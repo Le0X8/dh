@@ -37,7 +37,7 @@ fn read_primitive() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu8() {
     let data = [0xff, 0xff, 0x7f, 0xff];
     let mut cursor = Cursor::new(data);
@@ -47,7 +47,7 @@ fn read_vu8() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu16_le() {
     let data = [0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff];
     let mut cursor = Cursor::new(data);
@@ -57,7 +57,7 @@ fn read_vu16_le() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu16_be() {
     let data = [0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff];
     let mut cursor = Cursor::new(data);
@@ -67,7 +67,7 @@ fn read_vu16_be() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu32_le() {
     let data = [
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff,
@@ -80,7 +80,7 @@ fn read_vu32_le() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu32_be() {
     let data = [
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -93,7 +93,7 @@ fn read_vu32_be() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu64_le() {
     let data = [
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -106,7 +106,7 @@ fn read_vu64_le() {
 }
 
 #[test]
-#[cfg(feature = "vli")]
+#[cfg(any(feature = "vli", doc))]
 fn read_vu64_be() {
     let data = [
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
